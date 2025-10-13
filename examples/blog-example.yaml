@@ -1,0 +1,135 @@
+?nsuri: http://www.ModelDrivenEngineering.com/model/v1
+BackendConfig:
+  project:
+    Project:
+      name: "BlogPlatform"
+      groupId: "com.example.blog"
+      language: JAVA
+      framework: SPRING_BOOT
+      javaVersion: 17
+      springBootVersion: "3.2.0"
+  database:
+    Database:
+      type: POSTGRESQL
+      name: "blog_platform"
+      host: "localhost"
+      port: 5432
+      tables:
+        - Table:
+            name: "users"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "username"
+                  type: STRING
+                  length: 50
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "email"
+                  type: STRING
+                  length: 100
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+        - Table:
+            name: "posts"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "title"
+                  type: STRING
+                  length: 200
+                  nullable: false
+              - Column:
+                  name: "content"
+                  type: TEXT
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: INTEGER
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "published_at"
+                  type: DATETIME
+                  nullable: true
+        - Table:
+            name: "comments"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "content"
+                  type: TEXT
+                  nullable: false
+              - Column:
+                  name: "post_id"
+                  type: INTEGER
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "posts"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "user_id"
+                  type: INTEGER
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+  api:
+    Api:
+      basePath: "/api/v1"
+      routes:
+        - Route:
+            entity: "users"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "posts"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "comments"
+            methods:
+              - CREATE
+              - READ
+              - DELETE
+              - LIST

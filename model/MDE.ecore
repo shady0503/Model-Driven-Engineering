@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="ModelDrivenEngineering" nsURI="http://www.ModelDrivenEngineering.com/model/v1"
+    nsPrefix="MDE">
+  <eClassifiers xsi:type="ecore:EClass" name="BackendConfig">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="project" lowerBound="1"
+        eType="#//Project" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="database" lowerBound="1"
+        eType="#//Database" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="api" eType="#//Api" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Project">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="groupId" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="javaVersion" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="17"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="springBootVersion" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="3.5.6"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Language" lowerBound="1"
+        eType="#//Language"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Framework" lowerBound="1"
+        eType="#//Framework"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Language">
+    <eLiterals name="Java" literal="JAVA"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="Framework">
+    <eLiterals name="SpringBoot" literal="SPRING_BOOT"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Database">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="#//DatabaseType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="host" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="port" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tables" upperBound="-1"
+        eType="#//Table" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DatabaseType">
+    <eLiterals name="PostgreSQL" literal="POSTGRESQL"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Table">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="columns" lowerBound="1"
+        upperBound="-1" eType="#//Column" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Column">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="#//DataType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="primary" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="false"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unique" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="false"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="length" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="0"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="relation" eType="#//Relation"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataType">
+    <eLiterals name="String" literal="STRING"/>
+    <eLiterals name="int" value="1" literal="INTEGER"/>
+    <eLiterals name="Long" value="2" literal="LONG"/>
+    <eLiterals name="Boolean" value="3" literal="BOOLEAN"/>
+    <eLiterals name="Date" value="4" literal="DATE"/>
+    <eLiterals name="Text" value="5" literal="TEXT"/>
+    <eLiterals name="UUID" value="6" literal="UUID"/>
+    <eLiterals name="Decimal" value="7" literal="DECIMAL"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="RelationType">
+    <eLiterals name="oneToMany" literal="ONE_TO_MANY"/>
+    <eLiterals name="manyToOne" value="1" literal="MANY_TO_ONE"/>
+    <eLiterals name="oneToOne" value="2" literal="ONE_TO_ONE"/>
+    <eLiterals name="manyToMany" value="3" literal="MANY_TO_MANY"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Relation">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="targetTable" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="targetColumn" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onDelete" lowerBound="1"
+        eType="#//CascadeType" defaultValueLiteral="RESTRICT"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="#//RelationType"
+        defaultValueLiteral="MANY_TO_ONE"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="CascadeType">
+    <eLiterals name="cascade" literal="CASCADE"/>
+    <eLiterals name="setNull" value="1" literal="SET_NULL"/>
+    <eLiterals name="restrict" value="2" literal="RESTRICT"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="HttpMethod">
+    <eLiterals name="create" literal="CREATE"/>
+    <eLiterals name="read" value="1" literal="READ"/>
+    <eLiterals name="update" value="2" literal="UPDATE"/>
+    <eLiterals name="delete" value="3" literal="DELETE"/>
+    <eLiterals name="list" value="4" literal="LIST"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Api">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="basePath" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="/api"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="routes" upperBound="-1"
+        eType="#//Route" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Route">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="entity" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="methods" lowerBound="1"
+        upperBound="-1" eType="#//HttpMethod"/>
+  </eClassifiers>
+</ecore:EPackage>

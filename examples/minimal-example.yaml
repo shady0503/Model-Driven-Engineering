@@ -1,0 +1,49 @@
+?nsuri: http://www.ModelDrivenEngineering.com/model/v1
+BackendConfig:
+  project:
+    Project:
+      name: "MinimalBlog"
+      groupId: "com.example"
+      language: JAVA
+      framework: SPRING_BOOT
+      javaVersion: 17
+      springBootVersion: "3.2.0"
+  database:
+    Database:
+      type: POSTGRESQL
+      name: "minimal_blog"
+      host: "localhost"
+      port: 5432
+      tables:
+        - Table:
+            name: "users"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "username"
+                  type: STRING
+                  length: 50
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "email"
+                  type: STRING
+                  length: 100
+                  unique: true
+                  nullable: false
+  api:
+    Api:
+      basePath: "/api/v1"
+      routes:
+        - Route:
+            entity: "users"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
