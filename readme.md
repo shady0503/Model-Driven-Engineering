@@ -36,14 +36,16 @@ Week 6:   Polish & Documentation
 ✅ **COMPLETED** - `pom.xml` configured with:
 - Java 17 as compiler target ✅
 - Eclipse EMF dependencies (ecore, common, xmi) ✅
-- **Flexmi** dependency from Eclipse Epsilon (instead of direct SnakeYAML) ✅
+- **Eclipse Epsilon** dependencies for the full transformation stack:
+  - **Flexmi** for T2M parsing (YAML → Model) ✅
+  - **ETL** (Epsilon Transformation Language) for M2M transformations ⚠️
+  - **EGL** (Epsilon Generation Language) for M2T code generation ⚠️
 - Spring Boot Starter dependency ✅
-- Mustache for templating ✅
 - Picocli for CLI interface ✅
 - JUnit 5 for testing ✅
 - Maven Shade plugin configuration pending ⚠️
 
-**MDE Note**: This Maven project serves as the *technical space* for implementing our Model-to-Text (M2T) transformation system, bridging between the *modelware* technical space (where our Ecore metamodel resides) and the *grammarware* technical space (the generated Java code).
+**MDE Note**: This Maven project uses the **Eclipse Epsilon stack** - an integrated family of MDE languages and tools. Epsilon provides a consistent approach across all transformation types: Text-to-Model (Flexmi), Model-to-Model (ETL), and Model-to-Text (EGL), all with shared OCL-based query capabilities and metamodel awareness.
 
 ## Step 1.3: Install Eclipse Modeling Tools
 
@@ -361,90 +363,212 @@ Errors in YAML file:
 
 ## Step 4.1: Choose Template Engine
 
-✅ **PLANNED** - Mustache selected as template engine:
+✅ **PLANNED** - **EGL (Epsilon Generation Language)** selected as M2T transformation language:
 
 **Rationale:**
-- Logic-less templates enforce separation of model and presentation
-- Simple {{variable}} syntax
-- Well-supported in Java ecosystem
-- Promotes clean template design
-- Dependency already in pom.xml ✅
+- **Metamodel-aware**: EGL understands Ecore metamodels natively
+- **OCL-based querying**: Uses EOL (Epsilon Object Language) which extends OCL for model navigation
+- **Template-based**: Separates static code structure from dynamic model-driven content
+- **Integrated tooling**: Part of Eclipse Epsilon ecosystem alongside Flexmi and ETL
+- **Protected regions**: Built-in support for preserving manually-written code sections
+- **Mature MDE tool**: Specifically designed for model-to-text transformations, not generic templating
 
-**MDE Principle**: Templates represent the *concrete syntax* of the target technical space (Java code). They define the *static code* while metamodel instances provide the *dynamic code* through variable substitution.
+**MDE Principle**: EGL is a dedicated M2T transformation language (like Acceleo, Xtend, or MOFScript from the MDE book) rather than a general-purpose template engine. It provides first-class support for models, metamodels, and MDE concepts that generic template engines lack.
+
+**Epsilon Stack Integration:**
+- **Flexmi** (T2M): YAML → BackendConfig model
+- **ETL** (M2M): BackendConfig model → Context models
+- **EGL** (M2T): Context models → Java source code
+
+This creates a consistent transformation pipeline using the Epsilon family of languages.
 
 ## Step 4.2: Create Template Directory Structure
 
 ❌ **NOT STARTED** - `templates/` directory exists but is empty
 
-**Planned Structure:**
+**Planned Structure (EGL Templates):**
 ```
 templates/
 ├── project/
-│   ├── pom.xml.mustache
-│   └── application.yml.mustache
+│   ├── pom.egl
+│   └── application.egl
 ├── entity/
-│   └── Entity.java.mustache
+│   └── Entity.egl
 ├── repository/
-│   └── Repository.java.mustache
+│   └── Repository.egl
 ├── service/
-│   └── Service.java.mustache
+│   └── Service.egl
 ├── controller/
-│   └── Controller.java.mustache
+│   └── Controller.egl
 ├── docker/
-│   └── docker-compose.yml.mustache
-└── README.md.mustache
+│   └── docker-compose.egl
+└── README.egl
 ```
 
-**MDE Note**: Each template represents a different *artifact type* in the target platform-specific model (PSM). The template structure mirrors the target architecture.
+**EGL Template Syntax:**
+- `[% ... %]` - Code blocks for EOL (Epsilon Object Language) expressions
+- `[%= expression %]` - Output expressions (like `<%= %>` in JSP)
+- `[* ... *]` - Comments
+- Direct text output (everything outside markers)
 
-## Step 4.3: Design Template Context Objects
+**MDE Note**: Each `.egl` template represents a *transformation rule* that takes model elements as input and produces text as output. The template structure mirrors the target architecture while EOL expressions provide model-driven content.
 
-❌ **NOT STARTED** - Context DTOs to be created
+## Step 4.3: Design Context Metamodel (PSM)
 
-**Planned Context Objects** (separate from Ecore model):
-- `ProjectContext`: Extracted project metadata for template consumption
-- `EntityContext`: Per-table information optimized for entity generation
-- `FieldContext`: Per-column information with Java type mappings
-- `RelationContext`: Relationship data with JPA annotation details
+❌ **NOT STARTED** - Context metamodel to be created
 
-**MDE Principle**: Context objects represent an intermediate *platform-specific model (PSM)* layer between our platform-independent BackendConfig model and the final code. This is a classic Model-Driven Architecture (MDA) transformation chain: PIM → PSM → Code.
+**Create `Context.ecore` Metamodel:**
+
+The Context metamodel defines the Platform-Specific Model (PSM) layer - an intermediate model optimized for code generation. This is separate from the BackendConfig metamodel (PIM).
+
+**Context EClasses (PSM):**
+
+1. **ProjectContext**: Project-level code generation data
+   - groupId: String
+   - artifactId: String
+   - version: String
+   - javaVersion: String
+   - frameworkVersion: String
+   - dependencies: List<Dependency>
+
+2. **EntityContext**: Per-entity code generation data
+   - tableName: String
+   - className: String (PascalCase)
+   - packageName: String
+   - fields: List<FieldContext>
+   - relations: List<RelationContext>
+
+3. **FieldContext**: Per-field code generation data
+   - columnName: String
+   - fieldName: String (camelCase)
+   - javaType: String
+   - nullable: Boolean
+   - isPrimaryKey: Boolean
+   - annotations: List<String>
+
+4. **RelationContext**: JPA relationship data
+   - relationType: String (@ManyToOne, @OneToMany, etc.)
+   - targetEntity: String
+   - joinColumn: String
+   - mappedBy: String
+   - cascadeTypes: List<String>
+
+**MDE Architecture:**
+```
+PIM (BackendConfig.ecore) 
+  ↓ [ETL Transformation]
+PSM (Context.ecore) 
+  ↓ [EGL Templates]
+Code (Java files)
+```
+
+**Why a Separate Context Metamodel?**
+- **Separation of Concerns**: PIM focuses on domain concepts; PSM focuses on code generation needs
+- **Multiple Targets**: Same PIM could generate different PSMs (Spring Boot, Quarkus, Micronaut)
+- **Transformation Clarity**: ETL rules explicitly show PIM→PSM mapping
+- **Template Simplicity**: EGL templates work with code-optimized data structures
+
+This is the classic **MDA approach**: CIM → PIM → PSM → Code, where our BackendConfig is the PIM and Context is the PSM.
 
 ## Step 4.4: Create POM Template
 
-❌ **NOT STARTED** - `pom.xml.mustache` to be designed
+❌ **NOT STARTED** - `pom.egl` to be designed
 
 **Template Should Include:**
-- Project coordinates ({{groupId}}, {{artifactId}}, {{version}})
-- Java {{javaVersion}}
+- Project coordinates using EGL expressions: `[%= context.groupId %]`, `[%= context.artifactId %]`
+- Java version: `[%= context.javaVersion %]`
 - Spring Boot parent and version
 - Dependencies: Spring Web, Spring Data JPA, database driver, Lombok
 - Build plugins: Maven compiler, Spring Boot plugin
 
-**MDE Concept**: This template embodies *meta-markers* - placeholders for model values that get substituted during M2T transformation.
+**Example EGL Template Snippet:**
+```xml
+<groupId>[%= context.groupId %]</groupId>
+<artifactId>[%= context.projectName %]</artifactId>
+<version>[%= context.version %]</version>
+
+[% for (dependency in context.dependencies) { %]
+<dependency>
+    <groupId>[%= dependency.groupId %]</groupId>
+    <artifactId>[%= dependency.artifactId %]</artifactId>
+</dependency>
+[% } %]
+```
+
+**MDE Concept**: This template embodies the M2T transformation where `[%= ... %]` expressions are *metamodel-aware queries* that extract values from the context model. EGL's EOL expressions can navigate model structures, call operations, and use OCL-like collection operations.
 
 ## Step 4.5: Create Application Configuration Template
 
-❌ **NOT STARTED** - `application.yml.mustache` to be designed
+❌ **NOT STARTED** - `application.egl` to be designed
 
 **Template Should Include:**
 - Server port configuration
-- Database connection ({{databaseType}}, {{databaseName}})
+- Database connection: `[%= context.database.type %]`, `[%= context.database.name %]`
 - JPA/Hibernate configuration
 - Logging levels
 
+**Example EGL Template:**
+```yaml
+spring:
+  datasource:
+    url: jdbc:[%= context.database.type.toLowerCase() %]://localhost:5432/[%= context.database.name %]
+    username: [%= context.database.username %]
+    password: [%= context.database.password %]
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: [%= context.debug ? "true" : "false" %]
+```
+
 ## Step 4.6: Create Entity Template
 
-❌ **NOT STARTED** - `Entity.java.mustache` to be designed
+❌ **NOT STARTED** - `Entity.egl` to be designed
 
 **Template Should Include:**
-- Package declaration: `com.{{groupId}}.{{projectName}}.entity`
-- JPA annotations: @Entity, @Table(name="{{tableName}}")
+- Package declaration: `package com.[%= context.groupId %].[%= context.projectName %].entity;`
+- JPA annotations: @Entity, @Table
 - Primary key handling with @Id, @GeneratedValue
 - Field declarations with types mapped from DataType enum
 - Relationship annotations: @ManyToOne, @OneToMany, @JoinColumn
 - Lombok annotations: @Data, @NoArgsConstructor
 
-**MDE Principle**: The entity template defines the *concrete syntax* for representing persistent domain objects, derived from the *abstract syntax* in our metamodel.
+**Example EGL Template Snippet:**
+```java
+package com.[%= context.groupId %].[%= context.projectName %].entity;
+
+import javax.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "[%= entity.tableName %]")
+@Data
+@NoArgsConstructor
+public class [%= entity.className %] {
+    
+    [% for (field in entity.fields) { %]
+    [% if (field.isPrimaryKey) { %]
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    [% } %]
+    @Column(name = "[%= field.columnName %]", nullable = [%= field.nullable %])
+    private [%= field.javaType %] [%= field.fieldName %];
+    
+    [% } %]
+    
+    [% for (relation in entity.relations) { %]
+    @[%= relation.jpaAnnotation %]
+    [% if (relation.isOwner) { %]
+    @JoinColumn(name = "[%= relation.joinColumn %]")
+    [% } else { %]
+    (mappedBy = "[%= relation.mappedBy %]")
+    [% } %]
+    private [%= relation.targetType %] [%= relation.fieldName %];
+    
+    [% } %]
+}
+```
+
+**MDE Principle**: The entity template defines the *concrete syntax* for representing persistent domain objects, derived from the *abstract syntax* in our metamodel. EGL's EOL expressions provide rich model navigation and can call helper operations for complex transformations (e.g., `entity.fields.select(f | f.isPrimaryKey)`).
 
 ## Step 4.7: Create Repository Template
 
@@ -511,7 +635,22 @@ templates/
 
 **Status: ❌ NOT STARTED (~0%)**
 
-**MDE Context**: This phase implements the *transformation engine* that executes Model-to-Text (M2T) transformations. In MDE terminology, this is the *code generator* that traverses model instances and applies templates to produce code artifacts.
+**MDE Context**: This phase implements the complete *transformation pipeline* using the Eclipse Epsilon stack. In MDE terminology, this consists of:
+1. **M2M Transformation (ETL)**: Transform PIM (BackendConfig) to PSM (Context objects)
+2. **M2T Transformation (EGL)**: Transform PSM (Context) to Code (Java source files)
+
+**Epsilon Transformation Chain:**
+```
+YAML file → [Flexmi/T2M] → BackendConfig model (PIM) 
+         → [ETL/M2M] → Context models (PSM) 
+         → [EGL/M2T] → Java source code
+```
+
+This leverages the **Epsilon family's** integrated approach where all languages share:
+- **EOL** (Epsilon Object Language) as the common expression language
+- Native Ecore metamodel support
+- OCL-like query capabilities
+- Consistent model navigation syntax
 
 ## Step 5.1: Create Generator Package Structure
 
@@ -519,56 +658,170 @@ templates/
 
 **Planned Packages:**
 - `com.mde.generator` - Main generator orchestration
-- `com.mde.generator.context` - Context object builders
-- `com.mde.generator.mapper` - Model-to-context transformation logic
+- `com.mde.generator.context` - Context model classes (PSM)
+- `com.mde.generator.etl` - ETL transformation modules (M2M)
+- `com.mde.generator.egl` - EGL template coordination (M2T)
 - `com.mde.generator.writer` - File I/O utilities
-- `com.mde.generator.template` - Template processing engine
 
-**MDE Note**: This package structure reflects the *transformation pipeline*: Model → Context (M2M) → Template Application (M2T) → Code (Text).
+**MDE Note**: This package structure reflects the *Epsilon transformation pipeline*:
+1. **ETL Module** (M2M): Declarative rules transforming BackendConfig → Context objects
+2. **EGL Templates** (M2T): Templates generating Java code from Context objects
+3. **Generator Coordinator**: Orchestrates ETL execution followed by EGL execution
 
 ## Step 5.2: Design Generator Architecture
 
 ❌ **NOT STARTED** - Main generator class to be designed
 
-**Transformation Pipeline:**
-1. **Input**: BackendConfig model instance (M1 layer, conforms to MDE.ecore)
-2. **Context Building**: Transform BackendConfig → Context objects (M2M transformation)
-3. **Template Processing**: Apply Mustache templates to contexts (M2T transformation)
-4. **Code Generation**: Write Java source files to filesystem
+**Epsilon-Based Transformation Pipeline:**
+
+1. **Input**: BackendConfig model instance (M1 layer, PIM - conforms to MDE.ecore)
+
+2. **ETL Transformation (M2M)**: 
+   - Execute ETL module (`BackendConfigToContext.etl`)
+   - ETL rules declaratively transform BackendConfig → Context objects
+   - Creates ProjectContext, EntityContext, FieldContext, RelationContext (PSM)
+
+3. **EGL Code Generation (M2T)**:
+   - For each Context object, execute appropriate EGL template
+   - Templates produce Java source code strings
+   - EOL expressions in templates query Context model elements
+
+4. **File Writing**:
+   - Write generated code to filesystem
+   - Create directory structure
+
 5. **Output**: Complete Spring Boot project (target technical space)
 
-**MDE Principle**: This implements a classic *generative approach* where high-level models are automatically transformed into lower-level implementations. The metamodel remains the single source of truth.
+**Key Epsilon Components:**
 
-## Step 5.3: Implement Model-to-Context Mappers
+- **ETL Module**: Declarative transformation rules (like ATL from the MDE book)
+  ```etl
+  rule BackendConfigToProjectContext 
+    transform bc : BackendConfig!BackendConfig
+    to pc : Context!ProjectContext {
+      pc.groupId = bc.project.groupId;
+      pc.artifactId = bc.project.name;
+      // ... more mappings
+  }
+  ```
 
-❌ **NOT STARTED** - Mapper classes to be created
+- **EGL Templates**: Model-driven text generation
+  ```java
+  [% var context = ProjectContext.all.first(); %]
+  package com.[%= context.groupId %].[%= context.artifactId %];
+  // ... generated code
+  ```
 
-**Transformation Mappings Needed:**
+**MDE Principle**: This implements a classic *two-stage generative approach* where:
+- Stage 1 (M2M/ETL): Platform-independent → Platform-specific model transformation
+- Stage 2 (M2T/EGL): Platform-specific model → Code text generation
+
+The metamodel remains the single source of truth throughout the pipeline.
+
+## Step 5.3: Implement ETL Transformation Module
+
+❌ **NOT STARTED** - ETL module to be created
+
+**ETL (Epsilon Transformation Language) Module:**
+
+Create `BackendConfigToContext.etl` with declarative transformation rules:
+
+**Transformation Rules Needed:**
 
 1. **BackendConfig → ProjectContext**
-   - Extract groupId, artifactId, version
-   - Map Language enum to Java version
-   - Map Framework enum to dependency versions
+   ```etl
+   rule BackendConfigToProjectContext 
+     transform bc : Source!BackendConfig
+     to pc : Target!ProjectContext {
+       
+       pc.groupId = bc.project.groupId;
+       pc.artifactId = bc.project.name;
+       pc.version = bc.project.version;
+       pc.javaVersion = bc.project.language.mapToJavaVersion();
+       pc.framework = bc.project.framework.name();
+   }
+   ```
 
 2. **Table → EntityContext**
-   - Transform table name to Java class name (snake_case → PascalCase)
-   - Determine package path
-   - Extract columns as field contexts
-   - Extract relationships as relation contexts
+   ```etl
+   rule TableToEntityContext 
+     transform t : Source!Table
+     to ec : Target!EntityContext {
+       
+       ec.tableName = t.name;
+       ec.className = t.name.toEntityName(); // snake_case → PascalCase
+       ec.packageName = bc.project.groupId + "." + bc.project.name;
+       ec.fields = t.columns.equivalent(); // Triggers Column rules
+       ec.relations = t.columns.select(c | c.relation.isDefined()).equivalent();
+   }
+   ```
 
 3. **Column → FieldContext**
-   - Map DataType enum to Java type (VARCHAR → String, INTEGER → Integer, UUID → UUID)
-   - Transform column name to camelCase
-   - Determine JPA annotations (@Column, @Id, @GeneratedValue)
-   - Handle nullable vs. primitive types
+   ```etl
+   rule ColumnToFieldContext 
+     transform c : Source!Column
+     to fc : Target!FieldContext {
+       
+       fc.columnName = c.name;
+       fc.fieldName = c.name.toCamelCase(); // user_id → userId
+       fc.javaType = c.type.mapToJavaType(); // DataType enum → Java type
+       fc.nullable = c.nullable;
+       fc.isPrimaryKey = c.primaryKey;
+       fc.annotations = c.getJpaAnnotations();
+   }
+   ```
 
 4. **Relation → RelationContext**
-   - Map RelationType to JPA annotation (@ManyToOne, @OneToMany, etc.)
-   - Determine @JoinColumn properties
-   - Map CascadeType enum to JPA cascade values
-   - Determine owning side vs. inverse side
+   ```etl
+   rule RelationToRelationContext 
+     transform r : Source!Relation
+     to rc : Target!RelationContext {
+       
+       rc.relationType = r.relationType.name();
+       rc.targetEntity = r.targetTable.equivalent(); // Gets EntityContext
+       rc.joinColumn = r.determineJoinColumn();
+       rc.mappedBy = r.determineMappedBy();
+       rc.cascadeTypes = r.cascadeTypes.collect(ct | ct.name());
+   }
+   ```
 
-**MDE Concept**: These mappers implement *model-to-model (M2M) transformations* from the platform-independent model (PIM) to a platform-specific model (PSM). The PSM (context objects) is optimized for code generation.
+**ETL Helper Operations:**
+```etl
+operation String toEntityName() : String {
+  // Convert snake_case to PascalCase: blog_posts → BlogPost
+  return self.split('_').collect(s | s.firstToUpperCase()).concat('');
+}
+
+operation String toCamelCase() : String {
+  // Convert snake_case to camelCase: user_id → userId
+  var parts = self.split('_');
+  return parts.first() + parts.subList(1, parts.size()).collect(s | s.firstToUpperCase()).concat('');
+}
+
+operation DataType mapToJavaType() : String {
+  var mapping = Map{
+    "STRING" = "String",
+    "INTEGER" = "Integer",
+    "LONG" = "Long",
+    "UUID" = "UUID",
+    // ... more mappings
+  };
+  return mapping.get(self.name());
+}
+```
+
+**MDE Concept**: ETL rules are *declarative M2M transformations* similar to ATL (from the MDE book). Each rule specifies:
+- **Source pattern**: What model elements to match (e.g., `Source!Table`)
+- **Target pattern**: What model elements to create (e.g., `Target!EntityContext`)
+- **Bindings**: How to populate target attributes from source attributes
+
+ETL automatically:
+- Matches all instances of source patterns
+- Creates corresponding target instances
+- Tracks transformations via trace links
+- Resolves cross-references using `equivalent()` operation
+
+This is pure M2M transformation - no string manipulation or code generation yet. That happens in the EGL phase.
 
 ## Step 5.4: Implement Directory Structure Generator
 
@@ -601,17 +854,86 @@ output/
 
 **MDE Note**: This structure reflects standard Java/Spring Boot conventions - the *target platform conventions* that our generator must respect.
 
-## Step 5.5: Implement Template Processing Engine
+## Step 5.5: Implement EGL Template Processing Engine
 
-❌ **NOT STARTED** - Mustache engine wrapper to be created
+❌ **NOT STARTED** - EGL coordinator to be created
 
-**Template Processor Should:**
-1. Load templates from `src/main/resources/templates/` or classpath
-2. Create Mustache compiler instance with proper configuration
-3. Merge template with context object (apply M2T transformation)
-4. Return rendered string ready for file writing
+**EGL Template Processor Should:**
 
-**MDE Principle**: The template engine performs *pattern-based code generation* where static code patterns are enriched with model-specific data through variable substitution.
+1. **Initialize EGL Engine**:
+   ```java
+   EglTemplateFactory factory = new EglTemplateFactoryModuleAdapter();
+   EglTemplate template = factory.load(templateUri);
+   ```
+
+2. **Prepare Model Context**:
+   ```java
+   IModel contextModel = loadContextModel(); // Context objects from ETL
+   template.getContext().getModelRepository().addModel(contextModel);
+   ```
+
+3. **Execute Template**:
+   ```java
+   String generatedCode = template.process();
+   ```
+
+4. **Handle Multiple Templates**:
+   - Iterate through Context model elements
+   - For each EntityContext → process Entity.egl
+   - For each EntityContext → process Repository.egl
+   - For each EntityContext → process Service.egl
+   - For each EntityContext → process Controller.egl
+   - Process project-level templates once (pom.egl, application.egl)
+
+**EGL Template Execution Flow:**
+```
+Context Model → EGL Engine → Template Processing → Java Code String
+     ↓
+  EOL Expressions query model
+     ↓
+  Template generates text with model values
+```
+
+**Example EGL Coordinator Code:**
+```java
+public class EglCodeGenerator {
+    
+    public void generateCode(IModel contextModel, Path outputDir) {
+        EglTemplateFactory factory = new EglTemplateFactoryModuleAdapter();
+        
+        // Get all entities from context model
+        Collection<EntityContext> entities = getAllEntities(contextModel);
+        
+        // Generate entity files
+        for (EntityContext entity : entities) {
+            EglTemplate entityTemplate = factory.load("templates/entity/Entity.egl");
+            entityTemplate.populate("entity", entity);
+            
+            String code = entityTemplate.process();
+            writeToFile(outputDir, entity.getPackagePath() + "/" + entity.getClassName() + ".java", code);
+        }
+        
+        // Generate repositories, services, controllers similarly...
+        
+        // Generate project files
+        EglTemplate pomTemplate = factory.load("templates/project/pom.egl");
+        ProjectContext project = getProject(contextModel);
+        pomTemplate.populate("context", project);
+        writeToFile(outputDir, "pom.xml", pomTemplate.process());
+    }
+}
+```
+
+**MDE Principle**: EGL performs *pattern-based M2T transformation* where:
+- Templates define static code structure (the pattern)
+- EOL expressions inject dynamic content from models (the data)
+- The combination produces platform-specific code
+
+Unlike generic template engines, EGL:
+- Understands EMF/Ecore models natively
+- Provides rich EOL query language (extends OCL)
+- Supports protected regions for partial generation
+- Integrates with Epsilon's model management tools
 
 ## Step 5.6: Implement File Writers
 
@@ -1232,20 +1554,24 @@ Example: {correctUsage}
 
 2. **Design Decisions**
    - Why Flexmi over manual parser (metamodel-driven parsing)
-   - Why Mustache for templates (separation of concerns)
+   - Why Eclipse Epsilon stack (integrated MDE toolchain)
+   - Why ETL for M2M transformations (declarative, trace-based)
+   - Why EGL for M2T generation (metamodel-aware templates)
    - Why Ecore/EMF (mature metamodeling framework)
    - Rationale for metamodel structure
 
 3. **Transformation Strategy**
    - PIM design (BackendConfig metamodel)
-   - PSM design (Context objects)
-   - M2T approach (template-based code generation)
-   - Traceability maintenance
+   - PSM design (Context metamodel)
+   - M2M approach (ETL rules with declarative semantics)
+   - M2T approach (EGL template-based code generation)
+   - Traceability maintenance via ETL trace links
 
 4. **Comparison with Alternatives**
    - Manual coding vs. model-driven approach
    - DSL textual syntax (Xtext) vs. YAML + Flexmi
-   - Template engines comparison (Mustache vs. Velocity vs. FreeMarker)
+   - Transformation tools: Epsilon (ETL/EGL) vs. ATL/Acceleo vs. QVT
+   - Template engines: EGL vs. Acceleo vs. Xtend vs. generic engines
    - Other backend generators (JHipster, etc.)
 
 5. **Evaluation**
@@ -1516,15 +1842,22 @@ mde-backend-generator/
    - Technical spaces (modelware, grammarware)
 
 ## Transformations
-4. **Model Transformations**: Multi-stage transformation pipelines
-   - Text-to-Model (T2M): YAML → BackendConfig model
-   - Model-to-Model (M2M): BackendConfig → Context objects (PIM → PSM)
-   - Model-to-Text (M2T): Context → Java code
+4. **Model Transformations**: Multi-stage transformation pipelines using Epsilon
+   - Text-to-Model (T2M): YAML → BackendConfig model (via **Flexmi**)
+   - Model-to-Model (M2M): BackendConfig → Context objects using **ETL** (PIM → PSM)
+   - Model-to-Text (M2T): Context → Java code using **EGL**
 
-5. **Code Generation**: Template-based code synthesis
-   - Pattern-based generation with Mustache
-   - Meta-markers for model-driven placeholders
-   - Separation of static and dynamic code
+5. **ETL (Epsilon Transformation Language)**: Declarative M2M transformations
+   - Rule-based transformation specification
+   - Automatic trace link management
+   - OCL-based model queries (via EOL)
+   - Lazy vs. eager rule execution
+
+6. **EGL (Epsilon Generation Language)**: Model-aware code generation
+   - Template-based M2T transformations
+   - EOL expressions for model navigation
+   - Protected regions for partial generation
+   - Integration with Epsilon model management
 
 6. **Parser Implementation**: Metamodel-driven parsing
    - Flexmi's metamodel-based YAML parsing
@@ -1583,8 +1916,14 @@ mde-backend-generator/
 
 ## Model Transformations
 - **Exogenous Transformations**: Between different metamodels (YAML → Java)
-- **Transformation Chain**: T2M → M2M → M2T
-- **Pattern-Based Generation**: Templates define output structure
+- **Transformation Chain**: T2M (Flexmi) → M2M (ETL) → M2T (EGL)
+- **Eclipse Epsilon Stack**: Integrated family of transformation languages
+  - **Flexmi**: Metamodel-driven YAML/XML parsing
+  - **ETL**: Declarative M2M with automatic trace links
+  - **EGL**: Template-based M2T with EOL queries
+  - **EOL**: Common expression language (extends OCL)
+- **Trace-Based Transformation**: ETL maintains source-to-target links
+- **Pattern-Based Generation**: EGL templates define output structure
 
 ## Domain-Specific Languages
 - **Abstract Syntax**: Defined by MDE.ecore metamodel
@@ -1619,41 +1958,94 @@ mde-backend-generator/
 4. **Validation** - EMF validation working, custom rules pending
 
 ## ❌ Not Started (50%)
-1. **Templates** - No Mustache templates created
-2. **Code Generator** - No M2T transformation implementation
-3. **Context Mappers** - No M2M transformation from BackendConfig to contexts
-4. **CLI Commands** - No command implementation
-5. **Custom Validation** - No business rule validators
-6. **Documentation** - No user/developer documentation
-7. **Packaging** - No executable JAR configuration
-8. **CI/CD** - No automated testing/deployment
+1. **Context Metamodel** - PSM layer metamodel not created
+2. **ETL Transformations** - No M2M rules from BackendConfig to Context
+3. **EGL Templates** - No M2T code generation templates created
+4. **Code Generator** - No transformation engine implementation
+5. **CLI Commands** - No command implementation
+6. **Custom Validation** - No business rule validators
+7. **Documentation** - No user/developer documentation
+8. **Packaging** - No executable JAR configuration
+9. **CI/CD** - No automated testing/deployment
 
 ## 🎯 Next Priority Steps
 
 **To Achieve Minimal Viable Product (MVP):**
 
-1. **Create Templates** (Phase 4)
-   - Entity, Repository, Service, Controller templates
-   - POM and application.yml templates
-   - Basic Docker Compose template
+1. **Create Context Metamodel** (Phase 4)
+   - Define Context.ecore (PSM layer)
+   - Generate Context model code with EMF
+   - ProjectContext, EntityContext, FieldContext, RelationContext
 
-2. **Implement Generator** (Phase 5)
-   - Model-to-context mappers
-   - Template processing engine
+2. **Create ETL Module** (Phase 5)
+   - Write BackendConfigToContext.etl
+   - Define transformation rules (Table → EntityContext, etc.)
+   - Implement helper operations (naming transformations, type mappings)
+
+3. **Create EGL Templates** (Phase 4)
+   - Entity.egl, Repository.egl, Service.egl, Controller.egl
+   - pom.egl, application.egl
+   - Docker Compose template
+
+4. **Implement Generator** (Phase 5)
+   - ETL execution engine
+   - EGL template processor
    - File writing utilities
-   - Type and naming transformations
+   - Integration coordinator
 
-3. **Implement CLI** (Phase 6)
-   - Generate command with FlexmiModelLoader integration
+5. **Implement CLI** (Phase 6)
+   - Generate command with full pipeline
    - Basic error handling and output
    - Help and version commands
 
-4. **Testing** (Phase 8)
-   - Integration tests for full pipeline
+6. **Testing** (Phase 8)
+   - Integration tests for Flexmi → ETL → EGL pipeline
    - Test generated projects compile and run
 
 **Estimated Time to MVP: 3-4 additional weeks**
 
 ---
 
-**This README accurately reflects the current state of the Model-Driven Engineering Backend Generator project, incorporating both the actual implementation details and the foundational MDSE principles that guide its architecture and design.**
+# 🔧 Technology Stack Alignment with MDE Book
+
+**This README follows the Eclipse Epsilon stack for all transformations:**
+
+## **Book's Recommendations vs. Our Choices:**
+
+| Transformation Type | Book's Primary Choice | Our Choice | Rationale |
+|---------------------|----------------------|------------|-----------|
+| **M3 Metamodel** | Ecore (EMF) | ✅ **Ecore (EMF)** | Standard choice |
+| **M2 Metamodel** | Ecore editors | ✅ **Ecore editors** | Standard choice |
+| **T2M Parsing** | Xtext, EMFText | ✅ **Flexmi** (Epsilon) | Metamodel-driven YAML parsing |
+| **M2M Transform** | **ATL**, QVT, TGG | ✅ **ETL** (Epsilon) | Declarative, integrated with Epsilon |
+| **M2T Generation** | **Acceleo**, Xtend, MOFScript | ✅ **EGL** (Epsilon) | Template-based, integrated with Epsilon |
+
+## **Why Eclipse Epsilon Stack?**
+
+1. **Integrated Ecosystem**: Flexmi, ETL, and EGL are all part of the Epsilon family
+   - Shared EOL (Epsilon Object Language) for queries
+   - Consistent syntax and concepts across all tools
+   - Single dependency management
+
+2. **Book Recognition**: The MDE textbook mentions Epsilon tools:
+   - **ETL** listed as alternative to ATL for M2M transformations
+   - Part of Eclipse modeling ecosystem alongside ATL/Acceleo
+   - Academic and industry proven
+
+3. **MDE Principles**: All Epsilon tools are MDE-specific (not generic)
+   - Metamodel-aware transformations
+   - OCL-based querying (via EOL)
+   - Built-in traceability support
+   - Protected regions for partial generation
+
+4. **Practical Benefits**:
+   - Already using Flexmi successfully for parsing
+   - Easier learning curve (one language family)
+   - Better tool integration
+   - Active Eclipse community
+
+**Academic Note**: While the book's primary examples use ATL (M2M) and Acceleo (M2T), it explicitly presents Epsilon as a valid alternative approach. Both paths demonstrate the same MDE principles: metamodel-driven development, declarative transformations, and model-aware code generation.
+
+---
+
+**This README accurately reflects the current state of the Model-Driven Engineering Backend Generator project, incorporating both the actual implementation details and the foundational MDSE principles that guide its architecture and design, while using the Eclipse Epsilon stack as an integrated alternative to ATL/Acceleo.**
