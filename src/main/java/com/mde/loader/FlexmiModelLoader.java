@@ -185,4 +185,40 @@ public class FlexmiModelLoader {
         // Cast and return
         return (BackendConfig) rootObject;
     }
+    
+    /**
+     * Saves a BackendConfig model in Flexmi YAML format.
+     * This preserves cross-references better than XMI serialization.
+     *
+     * @param model BackendConfig instance to save
+     * @param outputPath Path where the Flexmi file will be saved
+     * @throws Exception if saving fails
+     */
+    public void saveAsFlexmi(BackendConfig model, Path outputPath) throws Exception {
+        if (model == null) {
+            throw new IllegalArgumentException("Model cannot be null");
+        }
+        if (outputPath == null) {
+            throw new IllegalArgumentException("Output path cannot be null");
+        }
+        
+        // Convert path to EMF URI
+        URI uri = URI.createFileURI(outputPath.toAbsolutePath().toString());
+        
+        // Create or get resource
+        Resource resource = resourceSet.getResource(uri, false);
+        if (resource == null) {
+            resource = resourceSet.createResource(uri);
+        }
+        
+        // Clear existing contents and add model
+        resource.getContents().clear();
+        resource.getContents().add(model);
+        
+        // Save with options
+        Map<String, Object> saveOptions = new HashMap<>();
+        saveOptions.put("ENCODING", "UTF-8");
+        
+        resource.save(saveOptions);
+    }
 }
