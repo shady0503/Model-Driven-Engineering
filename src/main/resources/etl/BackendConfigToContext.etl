@@ -83,10 +83,10 @@ rule TableToEntityContext
     ec.tableName = t.name;
     ec.className = t.name.toEntityName();  // users → User
     ec.packageName = Source!BackendConfig.all.first().project.groupId + "." 
-                   + Source!BackendConfig.all.first().project.name;
+                   + Source!BackendConfig.all.first().project.name + ".entity";
     
-    // Transform columns to fields
-    ec.fields = t.columns.equivalent();
+    // Transform columns to fields (exclude foreign key columns - they become relationships)
+    ec.fields = t.columns.select(c | not c.relation.isDefined()).equivalent();
     
     // Transform relations (columns with foreign keys)
     ec.relations = t.columns.select(c | c.relation.isDefined())
@@ -152,16 +152,19 @@ rule RelationToRelationContext
     // Relationship type
     rc.relationType = r.type.toString();  // MANY_TO_ONE, ONE_TO_MANY, etc.
     
-    // Target entity information - find by table name since targetTable might be string
+    // Target entity information - store table name, will be resolved in post-processing
     var targetTableName = getTargetTableName(r.targetTable);
-    var targetEntity = findEntityByTableName(targetTableName);
-    if (targetEntity.isDefined()) {
-        rc.targetEntity = targetEntity.className;
-    }
+    // Store table name temporarily - will be converted to className in post
+    rc.targetEntity = targetTableName;
     
     // Join column information
     if (r.foreignKeyColumn.isDefined()) {
-        rc.joinColumnName = r.foreignKeyColumn.name;
+        // Handle foreignKeyColumn as string or object
+        if (r.foreignKeyColumn.isTypeOf(String)) {
+            rc.joinColumnName = r.foreignKeyColumn;
+        } else {
+            rc.joinColumnName = r.foreignKeyColumn.name;
+        }
     } else {
         rc.joinColumnName = r.determineJoinColumn();
     }
@@ -184,10 +187,10 @@ rule RelationToRelationContext
     }
     
     // Owner flag
-    rc.isOwner = r.relationType.toString() = "MANY_TO_ONE";
+    rc.isOwner = r.type.toString() = "MANY_TO_ONE";
     
-    // Field name for the relationship
-    rc.fieldName = r.targetTable.name.singular();
+    // Field name for the relationship (reuse already fetched targetTableName)
+    rc.fieldName = targetTableName.singular();
     
     ("Created RelationContext: " + rc.relationType + " to " + rc.targetEntity).println();
 }
@@ -196,6 +199,16 @@ rule RelationToRelationContext
  * POST-PROCESSING
  *****************************************************************************/
 post {
+    // Resolve table names to class names in all relationships
+    resolveRelationshipTargets();
+    
+    // Create inverse relationships (e.g., if Posts has ManyToOne to Users, 
+    // add OneToMany from Users to Posts)
+    createInverseRelationships();
+    
+    // Add automatic audit timestamp fields to all entities
+    addAuditFieldsToAllEntities();
+    
     var projectContext = Target!ProjectContext.all.first();
     var entityCount = Target!EntityContext.all.size();
     var fieldCount = Target!FieldContext.all.size();
@@ -353,6 +366,10 @@ operation getDatabaseDriver(dbType : Any) : Map {
  */
 operation Source!Relation determineJoinColumn() : String {
     if (self.foreignKeyColumn.isDefined()) {
+        // Handle foreignKeyColumn as string or object
+        if (self.foreignKeyColumn.isTypeOf(String)) {
+            return self.foreignKeyColumn;
+        }
         return self.foreignKeyColumn.name;
     }
     // Get the target table name
@@ -372,6 +389,120 @@ operation getTargetTableName(targetTable : Any) : String {
 }
 
 /**
+ * Resolve table names to class names in relationship targets
+ * This must run AFTER all entities are created but BEFORE inverse relationships
+ */
+operation resolveRelationshipTargets() {
+    "Resolving relationship target entities...".println();
+    
+    var allEntities = Target!EntityContext.all;
+    
+    // For each entity
+    for (entity in allEntities) {
+        // For each relation in the entity
+        for (relation in entity.relations) {
+            // relation.targetEntity currently contains table name (e.g., "categories")
+            // We need to convert it to class name (e.g., "Categories")
+            var targetTableName = relation.targetEntity;
+            var targetEntity = allEntities.selectOne(e | e.tableName = targetTableName);
+            
+            if (targetEntity.isDefined()) {
+                // Update to class name
+                relation.targetEntity = targetEntity.className;
+                ("  Resolved: " + entity.className + "." + relation.fieldName + " → " + targetEntity.className).println();
+            } else {
+                ("  WARNING: Could not find target entity for table: " + targetTableName).println();
+            }
+        }
+    }
+}
+
+/**
+ * Create inverse relationships for bidirectional JPA mappings
+ * For each MANY_TO_ONE relationship, create the corresponding ONE_TO_MANY on the parent entity
+ */
+operation createInverseRelationships() {
+    "Creating inverse relationships...".println();
+    
+    // Get all entities
+    var allEntities = Target!EntityContext.all;
+    
+    // For each entity, look at its MANY_TO_ONE relationships
+    for (entity in allEntities) {
+        for (relation in entity.relations.select(r | r.relationType = "MANY_TO_ONE")) {
+            // Find the target entity
+            var targetEntity = allEntities.selectOne(e | e.className = relation.targetEntity);
+            
+            if (targetEntity.isDefined()) {
+                // Create inverse ONE_TO_MANY relationship
+                var inverseRelation = new Target!RelationContext;
+                inverseRelation.relationType = "ONE_TO_MANY";
+                inverseRelation.targetEntity = entity.className;
+                inverseRelation.fieldName = entity.tableName.toCamelCase(); // Convert to camelCase (e.g., "order_items" → "orderItems")
+                inverseRelation.mappedBy = relation.fieldName; // field name in the owning side
+                inverseRelation.cascadeType = "ALL";
+                inverseRelation.fetchType = "LAZY";
+                inverseRelation.isOwner = false;
+                
+                // Add to target entity
+                targetEntity.relations.add(inverseRelation);
+                
+                // Update hasRelationships flag
+                targetEntity.hasRelationships = true;
+                
+                ("  Created inverse: " + targetEntity.className + ".@OneToMany(" + inverseRelation.fieldName + ") → " + entity.className).println();
+            }
+        }
+    }
+}
+
+/**
+ * Add automatic audit timestamp fields (createdAt, updatedAt) to all entities
+ * These fields are managed by JPA auditing and don't need to be in the YAML
+ */
+operation addAuditFieldsToAllEntities() {
+    "Adding automatic audit fields to all entities...".println();
+    
+    var allEntities = Target!EntityContext.all;
+    
+    for (entity in allEntities) {
+        // Check if createdAt already exists
+        var hasCreatedAt = entity.fields.exists(f | f.fieldName = "createdAt");
+        
+        if (not hasCreatedAt) {
+            // Create createdAt field
+            var createdAtField = new Target!FieldContext;
+            createdAtField.columnName = "created_at";
+            createdAtField.fieldName = "createdAt";
+            createdAtField.javaType = "LocalDateTime";
+            createdAtField.isNullable = false;
+            createdAtField.isUnique = false;
+            createdAtField.isPrimaryKey = false;
+            
+            entity.fields.add(createdAtField);
+            ("  Added createdAt to " + entity.className).println();
+        }
+        
+        // Check if updatedAt already exists
+        var hasUpdatedAt = entity.fields.exists(f | f.fieldName = "updatedAt");
+        
+        if (not hasUpdatedAt) {
+            // Create updatedAt field
+            var updatedAtField = new Target!FieldContext;
+            updatedAtField.columnName = "updated_at";
+            updatedAtField.fieldName = "updatedAt";
+            updatedAtField.javaType = "LocalDateTime";
+            updatedAtField.isNullable = false;
+            updatedAtField.isUnique = false;
+            updatedAtField.isPrimaryKey = false;
+            
+            entity.fields.add(updatedAtField);
+            ("  Added updatedAt to " + entity.className).println();
+        }
+    }
+}
+
+/**
  * Find EntityContext in target model by table name
  */
 operation findEntityByTableName(tableName : String) : Target!EntityContext {
@@ -383,7 +514,7 @@ operation findEntityByTableName(tableName : String) : Target!EntityContext {
  * Determine mapped by for bidirectional relations
  */
 operation Source!Relation determineMappedBy() : String {
-    if (self.relationType = Source!RelationType#ONE_TO_MANY) {
+    if (self.type.toString() = "ONE_TO_MANY") {
         // For ONE_TO_MANY, mappedBy should be the field name in the target entity
         var targetTableName = getTargetTableName(self.targetTable);
         return targetTableName.singular();

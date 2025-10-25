@@ -1,5 +1,4 @@
-[* This template generates REST Controller classes *]
-[% for (entity in EntityContext.all) { %]
+[* This template generates a single REST Controller class *]
 package [%= entity.packageName.replace('.entity', '.controller') %];
 
 import [%= entity.packageName %].[%= entity.className %];
@@ -87,4 +86,3 @@ public class [%= entity.className %]Controller {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
-[% } %]

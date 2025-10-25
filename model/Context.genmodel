@@ -33,6 +33,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Context.ecore#//FieldContext/isPrimaryKey"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Context.ecore#//FieldContext/isNullable"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Context.ecore#//FieldContext/isUnique"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Context.ecore#//FieldContext/isAuditField"/>
     </genClasses>
     <genClasses ecoreClass="Context.ecore#//RelationContext">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Context.ecore#//RelationContext/fieldName"/>
