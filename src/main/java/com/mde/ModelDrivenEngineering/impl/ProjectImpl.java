@@ -436,9 +436,9 @@ public class ProjectImpl extends MinimalEObjectImpl.Container implements Project
 		result.append(springBootVersion);
 		result.append(", name: ");
 		result.append(name);
-		result.append(", Language: ");
+		result.append(", language: ");
 		result.append(language);
-		result.append(", Framework: ");
+		result.append(", framework: ");
 		result.append(framework);
 		result.append(')');
 		return result.toString();

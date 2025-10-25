@@ -24,6 +24,7 @@
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//DataType/Text"/>
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//DataType/UUID"/>
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//DataType/Decimal"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//DataType/DateTime"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//RelationType">
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/oneToMany"/>
@@ -53,8 +54,8 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/javaVersion"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/springBootVersion"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/name"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/Language"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/Framework"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/language"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/framework"/>
     </genClasses>
     <genClasses ecoreClass="MDE.ecore#//Database">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Database/type"/>
