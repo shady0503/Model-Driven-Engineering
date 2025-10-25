@@ -1426,15 +1426,20 @@ Example: {correctUsage}
 
 ## Step 9.1: Create Example YAML Files
 
-⚠️ **PARTIALLY COMPLETE** - 2 of 4 planned examples exist
+✅ **COMPLETED** - 3 diverse domain examples created
 
-**Existing Examples:**
-1. ✅ **minimal-example.yaml** - Simplest configuration (1 table)
-2. ✅ **blog-example.yaml** - Users, Posts, Comments (3 tables with relationships)
-
-**Still Needed:**
-3. ❌ **E-commerce example** - Products, Categories, Orders, OrderItems (many-to-many relationships)
-4. ❌ **Social network example** - Users, Posts, Comments, Likes, Friendships (complex relationships)
+**Example Projects:**
+1. ✅ **healthcare-system.yaml** - Medical management system with complex relationships (PostgreSQL)
+   - Entities: MedicalSpecialties, Doctors, Patients, Appointments, MedicalRecords, Prescriptions
+   - Features: Date handling, timestamps, complex ManyToOne relationships, audit fields
+   
+2. ✅ **social-media-platform.yaml** - Social network platform with many-to-many relationships (MySQL)
+   - Entities: Users, Posts, Comments, Likes, UserFollows, Hashtags, PostHashtags, DirectMessages, Notifications
+   - Features: UUIDs as primary keys, self-referencing relationships, join tables, media URLs
+   
+3. ✅ **financial-trading-platform.yaml** - Trading platform with precise decimals (PostgreSQL)
+   - Entities: AccountTypes, TradingAccounts, Securities, TradeOrders, TradeExecutions, PortfolioHoldings, AccountTransactions, PriceHistory
+   - Features: BigDecimal for currency, extensive precision/scale definitions, financial audit trails, complex calculations
 
 **MDE Note**: Examples demonstrate different *model patterns* and serve as both documentation and test cases. They are concrete instances (M1) of our metamodel (M2).
 

@@ -1,0 +1,313 @@
+# Social Media Platform
+# Demonstrates: Many-to-many relationships, self-referencing relationships, UUIDs
+# NOTE: Uses only features supported by current MDE metamodel
+
+project:
+  name: SocialNetworkAPI
+  basePackage: com.social.network
+  language: JAVA
+  framework: SPRING_BOOT
+  database:
+    type: POSTGRESQL
+    name: social_network_db
+    host: localhost
+    port: 5432
+
+tables:
+  # Users
+  - name: users
+    columns:
+      - name: user_id
+        type: UUID
+        primary: true
+        nullable: false
+      - name: username
+        type: STRING
+        length: 30
+        nullable: false
+        unique: true
+      - name: email
+        type: STRING
+        length: 100
+        nullable: false
+        unique: true
+      - name: password_hash
+        type: STRING
+        length: 255
+        nullable: false
+      - name: display_name
+        type: STRING
+        length: 50
+      - name: bio
+        type: TEXT
+      - name: profile_image_url
+        type: STRING
+        length: 500
+      - name: cover_image_url
+        type: STRING
+        length: 500
+      - name: date_of_birth
+        type: DATE
+      - name: location
+        type: STRING
+        length: 100
+      - name: website
+        type: STRING
+        length: 200
+      - name: is_verified
+        type: BOOLEAN
+      - name: is_private
+        type: BOOLEAN
+      - name: follower_count
+        type: INTEGER
+      - name: following_count
+        type: INTEGER
+      - name: last_login_at
+        type: DATETIME
+
+  # Posts
+  - name: posts
+    columns:
+      - name: post_id
+        type: UUID
+        primary: true
+        nullable: false
+      - name: content
+        type: TEXT
+        nullable: false
+      - name: media_url
+        type: STRING
+        length: 500
+      - name: media_type
+        type: STRING
+        length: 20
+      - name: like_count
+        type: INTEGER
+      - name: comment_count
+        type: INTEGER
+      - name: share_count
+        type: INTEGER
+      - name: is_edited
+        type: BOOLEAN
+      - name: edited_at
+        type: DATETIME
+      - name: author_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+
+  # Comments
+  - name: comments
+    columns:
+      - name: comment_id
+        type: UUID
+        primary: true
+        nullable: false
+      - name: content
+        type: TEXT
+        nullable: false
+      - name: like_count
+        type: INTEGER
+      - name: is_edited
+        type: BOOLEAN
+      - name: author_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: post_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: posts
+          targetColumn: post_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: parent_comment_id
+        type: UUID
+        relation:
+          targetTable: comments
+          targetColumn: comment_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+
+  # Likes
+  - name: likes
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: like_type
+        type: STRING
+        length: 20
+      - name: user_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: post_id
+        type: UUID
+        relation:
+          targetTable: posts
+          targetColumn: post_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: comment_id
+        type: UUID
+        relation:
+          targetTable: comments
+          targetColumn: comment_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+
+  # Followers/Following (self-referencing)
+  - name: user_follows
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: followed_at
+        type: DATETIME
+        nullable: false
+      - name: notifications_enabled
+        type: BOOLEAN
+      - name: follower_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: following_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+
+  # Hashtags
+  - name: hashtags
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: tag_name
+        type: STRING
+        length: 50
+        nullable: false
+        unique: true
+      - name: usage_count
+        type: INTEGER
+      - name: trending
+        type: BOOLEAN
+
+  # Post-Hashtag association (many-to-many)
+  - name: post_hashtags
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: post_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: posts
+          targetColumn: post_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: hashtag_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: hashtags
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+
+  # Direct Messages
+  - name: direct_messages
+    columns:
+      - name: message_id
+        type: UUID
+        primary: true
+        nullable: false
+      - name: content
+        type: TEXT
+        nullable: false
+      - name: is_read
+        type: BOOLEAN
+      - name: read_at
+        type: DATETIME
+      - name: media_url
+        type: STRING
+        length: 500
+      - name: sender_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: receiver_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+
+  # Notifications
+  - name: notifications
+    columns:
+      - name: notification_id
+        type: UUID
+        primary: true
+        nullable: false
+      - name: notification_type
+        type: STRING
+        length: 50
+        nullable: false
+      - name: content
+        type: STRING
+        length: 255
+      - name: is_read
+        type: BOOLEAN
+      - name: read_at
+        type: DATETIME
+      - name: action_url
+        type: STRING
+        length: 500
+      - name: user_id
+        type: UUID
+        nullable: false
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: triggered_by_user_id
+        type: UUID
+        relation:
+          targetTable: users
+          targetColumn: user_id
+          type: MANY_TO_ONE
+          onDelete: SET_NULL

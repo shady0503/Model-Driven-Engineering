@@ -1,0 +1,442 @@
+# Financial Trading Platform
+# Demonstrates: Precise decimal types, timestamps, enums via VARCHAR, audit trails
+
+project:
+  name: TradingPlatformAPI
+  basePackage: com.trading.platform
+  database:
+    type: POSTGRESQL
+    name: trading_platform_db
+    host: localhost
+    port: 5432
+    username: trading_user
+    password: trading_pass
+
+entities:
+  # Account Types
+  - name: AccountTypes
+    tableName: account_types
+    fields:
+      - name: typeName
+        type: VARCHAR
+        length: 50
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: description
+        type: TEXT
+      - name: minimumBalance
+        type: DECIMAL
+        precision: 15
+        scale: 2
+        defaultValue: "0.00"
+      - name: monthlyFee
+        type: DECIMAL
+        precision: 10
+        scale: 2
+        defaultValue: "0.00"
+      - name: tradingFeePercent
+        type: DECIMAL
+        precision: 5
+        scale: 4
+        defaultValue: "0.0000"
+
+  # Trading Accounts
+  - name: TradingAccounts
+    tableName: trading_accounts
+    fields:
+      - name: accountNumber
+        type: VARCHAR
+        length: 20
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: accountHolderName
+        type: VARCHAR
+        length: 100
+        constraints:
+          - type: NOT_NULL
+      - name: email
+        type: VARCHAR
+        length: 100
+        constraints:
+          - type: NOT_NULL
+      - name: phone
+        type: VARCHAR
+        length: 20
+      - name: taxId
+        type: VARCHAR
+        length: 20
+        constraints:
+          - type: UNIQUE
+      - name: balance
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        defaultValue: "0.00"
+        constraints:
+          - type: NOT_NULL
+      - name: availableBalance
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        defaultValue: "0.00"
+      - name: status
+        type: VARCHAR
+        length: 20
+        defaultValue: "'ACTIVE'"
+      - name: riskLevel
+        type: VARCHAR
+        length: 20
+        defaultValue: "'MODERATE'"
+      - name: openedDate
+        type: DATE
+        constraints:
+          - type: NOT_NULL
+      - name: closedDate
+        type: DATE
+      - name: isVerified
+        type: BOOLEAN
+        defaultValue: "false"
+      - name: verifiedAt
+        type: TIMESTAMP
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: account_types
+        joinColumn: account_type_id
+        constraints:
+          - type: NOT_NULL
+
+  # Securities (Stocks, Bonds, ETFs, etc.)
+  - name: Securities
+    tableName: securities
+    fields:
+      - name: symbol
+        type: VARCHAR
+        length: 10
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: name
+        type: VARCHAR
+        length: 100
+        constraints:
+          - type: NOT_NULL
+      - name: securityType
+        type: VARCHAR
+        length: 20
+        constraints:
+          - type: NOT_NULL
+      - name: exchange
+        type: VARCHAR
+        length: 50
+      - name: sector
+        type: VARCHAR
+        length: 50
+      - name: industry
+        type: VARCHAR
+        length: 50
+      - name: currentPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        constraints:
+          - type: NOT_NULL
+      - name: previousClose
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: dayHigh
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: dayLow
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: volume
+        type: BIGINT
+        defaultValue: "0"
+      - name: marketCap
+        type: BIGINT
+      - name: isActive
+        type: BOOLEAN
+        defaultValue: "true"
+      - name: lastUpdated
+        type: TIMESTAMP
+
+  # Trade Orders
+  - name: TradeOrders
+    tableName: trade_orders
+    fields:
+      - name: orderNumber
+        type: VARCHAR
+        length: 30
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: orderType
+        type: VARCHAR
+        length: 20
+        constraints:
+          - type: NOT_NULL
+      - name: side
+        type: VARCHAR
+        length: 10
+        constraints:
+          - type: NOT_NULL
+      - name: quantity
+        type: DECIMAL
+        precision: 18
+        scale: 8
+        constraints:
+          - type: NOT_NULL
+      - name: price
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: limitPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: stopPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: status
+        type: VARCHAR
+        length: 20
+        defaultValue: "'PENDING'"
+      - name: timeInForce
+        type: VARCHAR
+        length: 20
+        defaultValue: "'DAY'"
+      - name: filledQuantity
+        type: DECIMAL
+        precision: 18
+        scale: 8
+        defaultValue: "0.00000000"
+      - name: averageFillPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+      - name: commission
+        type: DECIMAL
+        precision: 10
+        scale: 2
+        defaultValue: "0.00"
+      - name: placedAt
+        type: TIMESTAMP
+        constraints:
+          - type: NOT_NULL
+      - name: executedAt
+        type: TIMESTAMP
+      - name: cancelledAt
+        type: TIMESTAMP
+      - name: expiresAt
+        type: TIMESTAMP
+      - name: notes
+        type: TEXT
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: trading_accounts
+        joinColumn: account_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: securities
+        joinColumn: security_id
+        constraints:
+          - type: NOT_NULL
+
+  # Executions (Trade Fills)
+  - name: TradeExecutions
+    tableName: trade_executions
+    fields:
+      - name: executionId
+        type: VARCHAR
+        length: 30
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: quantity
+        type: DECIMAL
+        precision: 18
+        scale: 8
+        constraints:
+          - type: NOT_NULL
+      - name: price
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        constraints:
+          - type: NOT_NULL
+      - name: executionValue
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        constraints:
+          - type: NOT_NULL
+      - name: commission
+        type: DECIMAL
+        precision: 10
+        scale: 2
+        defaultValue: "0.00"
+      - name: executedAt
+        type: TIMESTAMP
+        constraints:
+          - type: NOT_NULL
+      - name: exchange
+        type: VARCHAR
+        length: 50
+      - name: counterparty
+        type: VARCHAR
+        length: 100
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: trade_orders
+        joinColumn: order_id
+        constraints:
+          - type: NOT_NULL
+
+  # Portfolio Holdings
+  - name: PortfolioHoldings
+    tableName: portfolio_holdings
+    fields:
+      - name: quantity
+        type: DECIMAL
+        precision: 18
+        scale: 8
+        defaultValue: "0.00000000"
+        constraints:
+          - type: NOT_NULL
+      - name: averageCost
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        defaultValue: "0.0000"
+      - name: totalCost
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        defaultValue: "0.00"
+      - name: currentValue
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        defaultValue: "0.00"
+      - name: unrealizedGainLoss
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        defaultValue: "0.00"
+      - name: realizedGainLoss
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        defaultValue: "0.00"
+      - name: lastUpdated
+        type: TIMESTAMP
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: trading_accounts
+        joinColumn: account_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: securities
+        joinColumn: security_id
+        constraints:
+          - type: NOT_NULL
+
+  # Transactions (Deposits, Withdrawals, Dividends)
+  - name: AccountTransactions
+    tableName: account_transactions
+    fields:
+      - name: transactionId
+        type: VARCHAR
+        length: 30
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: transactionType
+        type: VARCHAR
+        length: 20
+        constraints:
+          - type: NOT_NULL
+      - name: amount
+        type: DECIMAL
+        precision: 18
+        scale: 2
+        constraints:
+          - type: NOT_NULL
+      - name: balanceAfter
+        type: DECIMAL
+        precision: 18
+        scale: 2
+      - name: description
+        type: VARCHAR
+        length: 255
+      - name: referenceNumber
+        type: VARCHAR
+        length: 50
+      - name: status
+        type: VARCHAR
+        length: 20
+        defaultValue: "'COMPLETED'"
+      - name: processedAt
+        type: TIMESTAMP
+        constraints:
+          - type: NOT_NULL
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: trading_accounts
+        joinColumn: account_id
+        constraints:
+          - type: NOT_NULL
+
+  # Price History
+  - name: PriceHistory
+    tableName: price_history
+    fields:
+      - name: priceDate
+        type: DATE
+        constraints:
+          - type: NOT_NULL
+      - name: openPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        constraints:
+          - type: NOT_NULL
+      - name: highPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        constraints:
+          - type: NOT_NULL
+      - name: lowPrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        constraints:
+          - type: NOT_NULL
+      - name: closePrice
+        type: DECIMAL
+        precision: 15
+        scale: 4
+        constraints:
+          - type: NOT_NULL
+      - name: volume
+        type: BIGINT
+        defaultValue: "0"
+      - name: adjustedClose
+        type: DECIMAL
+        precision: 15
+        scale: 4
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: securities
+        joinColumn: security_id
+        constraints:
+          - type: NOT_NULL

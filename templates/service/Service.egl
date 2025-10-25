@@ -1,5 +1,4 @@
-[* This template generates Service layer classes *]
-[% for (entity in EntityContext.all) { %]
+[* This template generates a single Service layer class *]
 package [%= entity.packageName.replace('.entity', '.service') %];
 
 import [%= entity.packageName %].[%= entity.className %];
@@ -72,4 +71,3 @@ public class [%= entity.className %]Service {
         return repository.existsById(id);
     }
 }
-[% } %]

@@ -1,0 +1,287 @@
+# Social Media Platform
+# Demonstrates: Many-to-many relationships, self-referencing relationships, UUIDs, timestamps
+
+project:
+  name: SocialNetworkAPI
+  basePackage: com.social.network
+  database:
+    type: POSTGRESQL
+    name: social_network_db
+    host: localhost
+    port: 5432
+    username: social_user
+    password: social_pass
+
+entities:
+  # Users
+  - name: Users
+    tableName: users
+    fields:
+      - name: userId
+        type: UUID
+        constraints:
+          - type: PRIMARY_KEY
+      - name: username
+        type: VARCHAR
+        length: 30
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: email
+        type: VARCHAR
+        length: 100
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: passwordHash
+        type: VARCHAR
+        length: 255
+        constraints:
+          - type: NOT_NULL
+      - name: displayName
+        type: VARCHAR
+        length: 50
+      - name: bio
+        type: TEXT
+      - name: profileImageUrl
+        type: VARCHAR
+        length: 500
+      - name: coverImageUrl
+        type: VARCHAR
+        length: 500
+      - name: dateOfBirth
+        type: DATE
+      - name: location
+        type: VARCHAR
+        length: 100
+      - name: website
+        type: VARCHAR
+        length: 200
+      - name: isVerified
+        type: BOOLEAN
+        defaultValue: "false"
+      - name: isPrivate
+        type: BOOLEAN
+        defaultValue: "false"
+      - name: followerCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: followingCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: lastLoginAt
+        type: TIMESTAMP
+
+  # Posts
+  - name: Posts
+    tableName: posts
+    fields:
+      - name: postId
+        type: UUID
+        constraints:
+          - type: PRIMARY_KEY
+      - name: content
+        type: TEXT
+        constraints:
+          - type: NOT_NULL
+      - name: mediaUrl
+        type: VARCHAR
+        length: 500
+      - name: mediaType
+        type: VARCHAR
+        length: 20
+      - name: likeCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: commentCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: shareCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: isEdited
+        type: BOOLEAN
+        defaultValue: "false"
+      - name: editedAt
+        type: TIMESTAMP
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: author_id
+        constraints:
+          - type: NOT_NULL
+
+  # Comments
+  - name: Comments
+    tableName: comments
+    fields:
+      - name: commentId
+        type: UUID
+        constraints:
+          - type: PRIMARY_KEY
+      - name: content
+        type: TEXT
+        constraints:
+          - type: NOT_NULL
+      - name: likeCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: isEdited
+        type: BOOLEAN
+        defaultValue: "false"
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: author_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: posts
+        joinColumn: post_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: comments
+        joinColumn: parent_comment_id
+
+  # Likes
+  - name: Likes
+    tableName: likes
+    fields:
+      - name: likeType
+        type: VARCHAR
+        length: 20
+        defaultValue: "'LIKE'"
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: user_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: posts
+        joinColumn: post_id
+      - type: MANY_TO_ONE
+        targetEntity: comments
+        joinColumn: comment_id
+
+  # Followers/Following (self-referencing many-to-many through join table)
+  - name: UserFollows
+    tableName: user_follows
+    fields:
+      - name: followedAt
+        type: TIMESTAMP
+        constraints:
+          - type: NOT_NULL
+      - name: notificationsEnabled
+        type: BOOLEAN
+        defaultValue: "true"
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: follower_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: following_id
+        constraints:
+          - type: NOT_NULL
+
+  # Hashtags
+  - name: Hashtags
+    tableName: hashtags
+    fields:
+      - name: tagName
+        type: VARCHAR
+        length: 50
+        constraints:
+          - type: NOT_NULL
+          - type: UNIQUE
+      - name: usageCount
+        type: INTEGER
+        defaultValue: "0"
+      - name: trending
+        type: BOOLEAN
+        defaultValue: "false"
+
+  # Post-Hashtag association (many-to-many)
+  - name: PostHashtags
+    tableName: post_hashtags
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: posts
+        joinColumn: post_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: hashtags
+        joinColumn: hashtag_id
+        constraints:
+          - type: NOT_NULL
+
+  # Direct Messages
+  - name: DirectMessages
+    tableName: direct_messages
+    fields:
+      - name: messageId
+        type: UUID
+        constraints:
+          - type: PRIMARY_KEY
+      - name: content
+        type: TEXT
+        constraints:
+          - type: NOT_NULL
+      - name: isRead
+        type: BOOLEAN
+        defaultValue: "false"
+      - name: readAt
+        type: TIMESTAMP
+      - name: mediaUrl
+        type: VARCHAR
+        length: 500
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: sender_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: receiver_id
+        constraints:
+          - type: NOT_NULL
+
+  # Notifications
+  - name: Notifications
+    tableName: notifications
+    fields:
+      - name: notificationId
+        type: UUID
+        constraints:
+          - type: PRIMARY_KEY
+      - name: notificationType
+        type: VARCHAR
+        length: 50
+        constraints:
+          - type: NOT_NULL
+      - name: content
+        type: VARCHAR
+        length: 255
+      - name: isRead
+        type: BOOLEAN
+        defaultValue: "false"
+      - name: readAt
+        type: TIMESTAMP
+      - name: actionUrl
+        type: VARCHAR
+        length: 500
+    relationships:
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: user_id
+        constraints:
+          - type: NOT_NULL
+      - type: MANY_TO_ONE
+        targetEntity: users
+        joinColumn: triggered_by_user_id
