@@ -17,9 +17,9 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="springBootVersion" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="3.5.6"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Language" lowerBound="1"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="language" lowerBound="1"
         eType="#//Language"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="Framework" lowerBound="1"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="framework" lowerBound="1"
         eType="#//Framework"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="Language">
@@ -33,8 +33,8 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="host" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="port" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="tables" upperBound="-1"
-        eType="#//Table" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tables" lowerBound="1"
+        upperBound="-1" eType="#//Table" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="DatabaseType">
     <eLiterals name="PostgreSQL" literal="POSTGRESQL"/>
@@ -67,6 +67,7 @@
     <eLiterals name="Text" value="5" literal="TEXT"/>
     <eLiterals name="UUID" value="6" literal="UUID"/>
     <eLiterals name="Decimal" value="7" literal="DECIMAL"/>
+    <eLiterals name="DateTime" value="8" literal="DATETIME"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="RelationType">
     <eLiterals name="oneToMany" literal="ONE_TO_MANY"/>
@@ -99,8 +100,8 @@
   <eClassifiers xsi:type="ecore:EClass" name="Api">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="basePath" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="/api"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="routes" upperBound="-1"
-        eType="#//Route" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="routes" lowerBound="1"
+        upperBound="-1" eType="#//Route" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Route">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="entity" lowerBound="1"

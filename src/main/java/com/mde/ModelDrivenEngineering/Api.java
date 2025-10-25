@@ -54,7 +54,7 @@ public interface Api extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Routes</em>' containment reference list.
 	 * @see com.mde.ModelDrivenEngineering.ModelDrivenPackage#getApi_Routes()
-	 * @model containment="true"
+	 * @model containment="true" required="true"
 	 * @generated
 	 */
 	EList<Route> getRoutes();

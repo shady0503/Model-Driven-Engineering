@@ -1,6 +1,8 @@
 package com.mde.loader;
 
 import com.mde.ModelDrivenEngineering.BackendConfig;
+import com.mde.validation.ModelValidationEngine;
+import com.mde.validation.ValidationResult;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -11,22 +13,39 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class FlexmiModelLoader {
+/**
+ * Enhanced FlexmiModelLoader with integrated validation support.
+ * This loader can optionally validate the model after loading.
+ */
+public class FlexmiModelLoaderWithValidation {
 
-    // ResourceSet manages model resources
     private final ResourceSet resourceSet;
+    private final ModelValidationEngine validationEngine;
+    private final boolean autoValidate;
+    private final boolean failOnValidationErrors;
 
     /**
-     * Creates a new loader instance
+     * Creates a new loader instance with default settings (no auto-validation)
      */
-    public FlexmiModelLoader() {
-        // Ensure package is registered
-        ModelPackageRegistrar.ensureRegistered();
+    public FlexmiModelLoaderWithValidation() {
+        this(false, false);
+    }
 
-        // Create resource set for loading models
+    /**
+     * Creates a new loader instance with validation options
+     * 
+     * @param autoValidate If true, automatically validate after loading
+     * @param failOnValidationErrors If true, throw LoadException when validation errors occur
+     */
+    public FlexmiModelLoaderWithValidation(boolean autoValidate, boolean failOnValidationErrors) {
+        ModelPackageRegistrar.ensureRegistered();
         this.resourceSet = new ResourceSetImpl();
+        this.validationEngine = ModelValidationEngine.createDefault();
+        this.autoValidate = autoValidate;
+        this.failOnValidationErrors = failOnValidationErrors;
     }
 
     /**
@@ -34,7 +53,7 @@ public class FlexmiModelLoader {
      *
      * @param filePath Path to the YAML file
      * @return Loaded BackendConfig instance
-     * @throws LoadException if loading fails
+     * @throws LoadException if loading or validation fails
      */
     public BackendConfig load(String filePath) throws LoadException {
         // Validate input
@@ -71,44 +90,79 @@ public class FlexmiModelLoader {
             // Load the resource
             Resource resource = loadResource(uri);
 
-            // Extract and return root object
-            return extractRootObject(resource);
+            // Extract root object
+            BackendConfig config = extractRootObject(resource);
+
+            // Auto-validate if enabled
+            if (autoValidate) {
+                validateModel(config, filePath);
+            }
+
+            return config;
 
         } catch (LoadException e) {
-            // Re-throw LoadException as-is
             throw e;
         } catch (Exception e) {
-            // Wrap other exceptions
             throw new LoadException("Failed to load model from: " + filePath, e);
         }
     }
+
     /**
      * Loads a BackendConfig model from a File object
-     *
-     * @param file File object
-     * @return Loaded BackendConfig instance
-     * @throws LoadException if loading fails
      */
     public BackendConfig load(File file) throws LoadException {
         if (file == null) {
             throw new LoadException("File cannot be null");
         }
-
         return load(file.getAbsolutePath());
     }
+
     /**
      * Loads a BackendConfig model from a Path object
-     *
-     * @param path Path object
-     * @return Loaded BackendConfig instance
-     * @throws LoadException if loading fails
      */
     public BackendConfig load(Path path) throws LoadException {
         if (path == null) {
             throw new LoadException("Path cannot be null");
         }
-
         return load(path.toFile());
+    }
+
+    /**
+     * Validates a BackendConfig model and returns validation results
+     * 
+     * @param config The model to validate
+     * @return List of validation results
+     */
+    public List<ValidationResult> validate(BackendConfig config) {
+        return validationEngine.validate(config);
+    }
+
+    /**
+     * Validates a model and throws exception if there are errors (when configured)
+     */
+    private void validateModel(BackendConfig config, String filePath) throws LoadException {
+        List<ValidationResult> results = validationEngine.validate(config);
+
+        if (!results.isEmpty()) {
+            // Print all validation results
+            System.out.println("\nValidation results for: " + filePath);
+            System.out.println(ModelValidationEngine.formatResults(results));
+
+            // Check if we should fail on errors
+            if (failOnValidationErrors) {
+                List<ValidationResult> errors = validationEngine.validateErrors(config);
+                if (!errors.isEmpty()) {
+                    StringBuilder errorMsg = new StringBuilder();
+                    errorMsg.append("Model validation failed with ")
+                           .append(errors.size())
+                           .append(" error(s):\n");
+                    for (ValidationResult error : errors) {
+                        errorMsg.append("  - ").append(error.getMessage()).append("\n");
+                    }
+                    throw new LoadException(errorMsg.toString());
+                }
+            }
+        }
     }
 
     /**
@@ -116,27 +170,19 @@ public class FlexmiModelLoader {
      */
     private Resource loadResource(URI uri) throws LoadException {
         try {
-            // Try to get existing resource or create new one
             Resource resource = resourceSet.getResource(uri, false);
 
             if (resource == null) {
-                // Create new resource
                 resource = resourceSet.createResource(uri);
             }
 
-            // Load the resource if not already loaded
             if (!resource.isLoaded()) {
-                // Create load options
                 Map<Object, Object> loadOptions = new HashMap<>();
-
-                // Load the resource (Flexmi parses YAML here)
                 resource.load(loadOptions);
             }
 
-            // Resolve all cross-references
             EcoreUtil.resolveAll(resourceSet);
 
-            // Check for errors
             if (!resource.getErrors().isEmpty()) {
                 StringBuilder errorMsg = new StringBuilder("Errors in YAML file:\n");
                 for (Resource.Diagnostic error : resource.getErrors()) {
@@ -146,7 +192,6 @@ public class FlexmiModelLoader {
                 throw new LoadException(errorMsg.toString());
             }
 
-            // Check for warnings (log but don't fail)
             if (!resource.getWarnings().isEmpty()) {
                 System.out.println("Warnings in YAML file:");
                 for (Resource.Diagnostic warning : resource.getWarnings()) {
@@ -165,15 +210,12 @@ public class FlexmiModelLoader {
      * Extracts the BackendConfig root object from the resource
      */
     private BackendConfig extractRootObject(Resource resource) throws LoadException {
-        // Check if resource has contents
         if (resource.getContents().isEmpty()) {
             throw new LoadException("No root element found in YAML file. File appears to be empty.");
         }
 
-        // Get first element
         Object rootObject = resource.getContents().get(0);
 
-        // Check if it's a BackendConfig
         if (!(rootObject instanceof BackendConfig)) {
             throw new LoadException(
                     "Root element is not a BackendConfig. Found: " +
@@ -182,7 +224,13 @@ public class FlexmiModelLoader {
             );
         }
 
-        // Cast and return
         return (BackendConfig) rootObject;
+    }
+
+    /**
+     * Gets the validation engine used by this loader
+     */
+    public ModelValidationEngine getValidationEngine() {
+        return validationEngine;
     }
 }
