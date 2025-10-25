@@ -1,0 +1,405 @@
+/*****************************************************************************
+ * ETL TRANSFORMATION: BackendConfig (PIM) → Context (PSM)
+ * 
+ * This transformation converts platform-independent backend configurations
+ * into platform-specific context models optimized for Spring Boot code generation.
+ *
+ * Transformation Type: Exogenous, Out-Place, Uni-directional
+ * Source Metamodel: MDE.ecore (BackendConfig)
+ * Target Metamodel: Context.ecore (Context)
+ * 
+ * Author: Generated for Model-Driven Backend Generator
+ *****************************************************************************/
+
+// Pre-block: Declare source and target models
+pre {
+    var sourceModel = Source!BackendConfig.all.first();
+    "Starting ETL transformation...".println();
+    "Source model contains " + Source!Table.all.size() + " tables".println();
+}
+
+/*****************************************************************************
+ * RULE 1: BackendConfig → ProjectContext
+ * 
+ * Transforms the main backend configuration into project-level context
+ * that will drive project file generation (pom.xml, application.properties)
+ *****************************************************************************/
+rule BackendConfigToProjectContext 
+    transform bc : Source!BackendConfig
+    to pc : Target!ProjectContext {
+    
+    guard : bc.isDefined()
+    
+    pc.groupId = bc.project.groupId;
+    pc.artifactId = bc.project.name;
+    pc.version = "1.0.0";  // Default version if not specified
+    pc.packageName = bc.project.groupId + "." + bc.project.name;
+    
+    // Map Java version (Project has javaVersion attribute directly)
+    pc.javaVersion = bc.project.javaVersion.toString();
+    
+    // Map Spring Boot version (Project has springBootVersion attribute directly)
+    pc.springBootVersion = bc.project.springBootVersion;
+    
+    // Map database type
+    pc.databaseType = bc.database.type.toString();
+    pc.databaseName = bc.database.name;
+    
+    // Generate dependencies (as DependencyContext objects)
+    var dependencies = bc.generateDependencies();
+    for (dep in dependencies) {
+        var dc = new Target!DependencyContext;
+        dc.groupId = dep.get("groupId");
+        dc.artifactId = dep.get("artifactId");
+        dc.version = dep.get("version");
+        if (dep.isDefined() and dep.containsKey("scope")) {
+            dc.scope = dep.get("scope");
+        } else {
+            dc.scope = "compile";
+        }
+        pc.dependencies.add(dc);
+    }
+    
+    // Link to entity contexts (will be created by Table rules)
+    pc.entities = bc.database.tables.equivalent();
+    
+    ("Created ProjectContext: " + pc.artifactId).println();
+}
+
+/*****************************************************************************
+ * RULE 2: Table → EntityContext
+ * 
+ * Transforms database tables into entity context objects
+ * Each EntityContext represents a JPA entity class to be generated
+ *****************************************************************************/
+@lazy
+rule TableToEntityContext 
+    transform t : Source!Table
+    to ec : Target!EntityContext {
+    
+    guard : t.isDefined() and t.columns.size() > 0
+    
+    // Basic naming
+    ec.tableName = t.name;
+    ec.className = t.name.toEntityName();  // users → User
+    ec.packageName = Source!BackendConfig.all.first().project.groupId + "." 
+                   + Source!BackendConfig.all.first().project.name;
+    
+    // Transform columns to fields
+    ec.fields = t.columns.equivalent();
+    
+    // Transform relations (columns with foreign keys)
+    ec.relations = t.columns.select(c | c.relation.isDefined())
+                            .collect(c | c.relation)
+                            .equivalent();
+    
+    // Set hasRelationships flag
+    ec.hasRelationships = ec.relations.size() > 0;
+    
+    // Find and set primary key
+    var pkField = ec.fields.selectOne(f | f.isPrimaryKey);
+    if (pkField.isDefined()) {
+        ec.primaryKey = pkField;
+    }
+    
+    // Note: repositoryName, serviceName, controllerName, apiPath 
+    // are not in Context.ecore - they will be computed in templates
+    
+    ("Created EntityContext: " + ec.className + " from table: " + t.name).println();
+}
+
+/*****************************************************************************
+ * RULE 3: Column → FieldContext
+ * 
+ * Transforms table columns into field context objects
+ * Each FieldContext represents a field in a JPA entity
+ *****************************************************************************/
+@lazy
+rule ColumnToFieldContext 
+    transform c : Source!Column
+    to fc : Target!FieldContext {
+    
+    guard : c.isDefined()
+    
+    // Column metadata
+    fc.columnName = c.name;
+    fc.fieldName = c.name.toCamelCase();  // user_id → userId
+    fc.javaType = mapToJavaType(c.type);  // DataType enum → Java type
+    
+    // Constraints
+    fc.isNullable = c.nullable;
+    fc.isUnique = c.unique;
+    fc.isPrimaryKey = c.primary;  // Note: attribute is 'primary', not 'primaryKey'
+    
+    // Note: Annotations are handled in templates, not stored in Context model
+    
+    ("Created FieldContext: " + fc.fieldName + " (" + fc.javaType + ")").println();
+}
+
+/*****************************************************************************
+ * RULE 4: Relation → RelationContext
+ * 
+ * Transforms foreign key relations into relation context objects
+ * Each RelationContext represents a JPA relationship (@ManyToOne, @OneToMany, etc.)
+ *****************************************************************************/
+@lazy
+rule RelationToRelationContext 
+    transform r : Source!Relation
+    to rc : Target!RelationContext {
+    
+    guard : r.isDefined() and r.targetTable.isDefined()
+    
+    // Relationship type
+    rc.relationType = r.type.toString();  // MANY_TO_ONE, ONE_TO_MANY, etc.
+    
+    // Target entity information - find by table name since targetTable might be string
+    var targetTableName = getTargetTableName(r.targetTable);
+    var targetEntity = findEntityByTableName(targetTableName);
+    if (targetEntity.isDefined()) {
+        rc.targetEntity = targetEntity.className;
+    }
+    
+    // Join column information
+    if (r.foreignKeyColumn.isDefined()) {
+        rc.joinColumnName = r.foreignKeyColumn.name;
+    } else {
+        rc.joinColumnName = r.determineJoinColumn();
+    }
+    
+    // Mapped by (for bidirectional relationships)
+    rc.mappedBy = r.determineMappedBy();
+    
+    // Cascade type (single string, not array)
+    if (r.cascadeTypes.isDefined() and r.cascadeTypes.size() > 0) {
+        rc.cascadeType = r.cascadeTypes.first().toString();
+    } else {
+        rc.cascadeType = "ALL";
+    }
+    
+    // Fetch type
+    if (r.fetchType.isDefined()) {
+        rc.fetchType = r.fetchType.toString();
+    } else {
+        rc.fetchType = "LAZY";
+    }
+    
+    // Owner flag
+    rc.isOwner = r.relationType.toString() = "MANY_TO_ONE";
+    
+    // Field name for the relationship
+    rc.fieldName = r.targetTable.name.singular();
+    
+    ("Created RelationContext: " + rc.relationType + " to " + rc.targetEntity).println();
+}
+
+/*****************************************************************************
+ * POST-PROCESSING
+ *****************************************************************************/
+post {
+    var projectContext = Target!ProjectContext.all.first();
+    var entityCount = Target!EntityContext.all.size();
+    var fieldCount = Target!FieldContext.all.size();
+    var relationCount = Target!RelationContext.all.size();
+    
+    "ETL Transformation Complete!".println();
+    "-------------------------------------".println();
+    ("Generated ProjectContext: " + projectContext.artifactId).println();
+    ("Generated " + entityCount + " EntityContext(s)").println();
+    ("Generated " + fieldCount + " FieldContext(s)").println();
+    ("Generated " + relationCount + " RelationContext(s)").println();
+    "-------------------------------------".println();
+}
+
+/*****************************************************************************
+ * HELPER OPERATIONS
+ * 
+ * These operations provide reusable transformations for common tasks
+ *****************************************************************************/
+
+/**
+ * Convert snake_case table name to PascalCase entity name
+ * Example: blog_posts → BlogPost, user_profiles → UserProfile
+ */
+operation String toEntityName() : String {
+    var parts = self.split('_');
+    var result = "";
+    for (part in parts) {
+        result = result + part.firstToUpperCase();
+    }
+    return result;
+}
+
+/**
+ * Convert snake_case column name to camelCase field name
+ * Example: user_id → userId, created_at → createdAt
+ */
+operation String toCamelCase() : String {
+    var parts = self.split('_');
+    if (parts.size() == 1) {
+        return self;  // No conversion needed
+    }
+    var result = parts.first();
+    for (part in parts.subList(1, parts.size())) {
+        result = result + part.firstToUpperCase();
+    }
+    return result;
+}
+
+/**
+ * Convert first character to uppercase
+ * Example: hello → Hello
+ */
+operation String firstToUpperCase() : String {
+    if (self.length() == 0) {
+        return self;
+    }
+    return self.substring(0, 1).toUpperCase() + self.substring(1, self.length());
+}
+
+/**
+ * Map DataType enum to Java type
+ */
+operation mapToJavaType(dataType : Any) : String {
+    var mapping = Map{
+        "STRING" = "String",
+        "INTEGER" = "Integer",
+        "LONG" = "Long",
+        "UUID" = "UUID",
+        "BOOLEAN" = "Boolean",
+        "DATE" = "LocalDate",
+        "DATETIME" = "LocalDateTime",
+        "TIMESTAMP" = "LocalDateTime",
+        "TEXT" = "String",
+        "DOUBLE" = "Double",
+        "FLOAT" = "Float",
+        "DECIMAL" = "BigDecimal"
+    };
+    var typeName = dataType.toString();  // Get enum literal as string
+    var result = mapping.get(typeName);
+    if (result.isDefined()) {
+        return result;
+    } else {
+        return "String";  // Default to String if unknown
+    }
+}
+
+/**
+ * Map Database Type enum to string
+ */
+operation mapToDatabaseTypeString(dbType : Any) : String {
+    return dbType.toString();
+}
+
+/**
+ * Generate project dependencies based on configuration
+ */
+operation Source!BackendConfig generateDependencies() : Sequence {
+    var dependencies = Sequence{};
+    
+    // Core Spring Boot dependencies
+    dependencies.add(Map{
+        "groupId" = "org.springframework.boot",
+        "artifactId" = "spring-boot-starter-web",
+        "version" = ""
+    });
+    
+    dependencies.add(Map{
+        "groupId" = "org.springframework.boot",
+        "artifactId" = "spring-boot-starter-data-jpa",
+        "version" = ""
+    });
+    
+    // Database driver based on database type
+    var dbDriver = getDatabaseDriver(self.database.type);
+    dependencies.add(dbDriver);
+    
+    // Lombok
+    dependencies.add(Map{
+        "groupId" = "org.projectlombok",
+        "artifactId" = "lombok",
+        "version" = ""
+    });
+    
+    return dependencies;
+}
+
+/**
+ * Get database driver dependency based on database type
+ */
+operation getDatabaseDriver(dbType : Any) : Map {
+    var typeName = dbType.toString();
+    var drivers = Map{
+        "POSTGRESQL" = Map{
+            "groupId" = "org.postgresql",
+            "artifactId" = "postgresql",
+            "version" = ""
+        },
+        "MYSQL" = Map{
+            "groupId" = "com.mysql",
+            "artifactId" = "mysql-connector-j",
+            "version" = ""
+        },
+        "H2" = Map{
+            "groupId" = "com.h2database",
+            "artifactId" = "h2",
+            "version" = ""
+        }
+    };
+    return drivers.get(typeName);
+}
+
+/**
+ * Determine join column name from relation
+ */
+operation Source!Relation determineJoinColumn() : String {
+    if (self.foreignKeyColumn.isDefined()) {
+        return self.foreignKeyColumn.name;
+    }
+    // Get the target table name
+    var targetTableName = getTargetTableName(self.targetTable);
+    // Default: targetTable_id
+    return targetTableName.singular() + "_id";
+}
+
+/**
+ * Helper to get table name from targetTable (which might be a string or Table object)
+ */
+operation getTargetTableName(targetTable : Any) : String {
+    if (targetTable.isTypeOf(String)) {
+        return targetTable;
+    }
+    return targetTable.name;
+}
+
+/**
+ * Find EntityContext in target model by table name
+ */
+operation findEntityByTableName(tableName : String) : Target!EntityContext {
+    // Look through all created EntityContext objects in the target model
+    return Target!EntityContext.all.selectOne(e | e.tableName = tableName);
+}
+
+/**
+ * Determine mapped by for bidirectional relations
+ */
+operation Source!Relation determineMappedBy() : String {
+    if (self.relationType = Source!RelationType#ONE_TO_MANY) {
+        // For ONE_TO_MANY, mappedBy should be the field name in the target entity
+        var targetTableName = getTargetTableName(self.targetTable);
+        return targetTableName.singular();
+    }
+    return "";
+}
+
+/**
+ * Get singular form of a word (simple implementation)
+ */
+operation String singular() : String {
+    if (self.endsWith("ies")) {
+        return self.substring(0, self.length() - 3) + "y";
+    }
+    if (self.endsWith("s") and not self.endsWith("ss")) {
+        return self.substring(0, self.length() - 1);
+    }
+    return self;
+}
