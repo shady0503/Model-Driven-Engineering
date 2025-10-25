@@ -1,0 +1,253 @@
+# Healthcare Management System
+# Demonstrates: Complex medical domain, multiple relationships, various data types
+# NOTE: Uses only features supported by current MDE metamodel
+
+project:
+  name: HealthcareAPI
+  basePackage: com.healthcare.system
+  language: JAVA
+  framework: SPRING_BOOT
+  database:
+    type: POSTGRESQL
+    name: healthcare_db
+    host: localhost
+    port: 5432
+
+# Medical Specialties lookup table
+tables:
+  - name: medical_specialties
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: specialty_name
+        type: STRING
+        length: 100
+        nullable: false
+        unique: true
+      - name: description
+        type: TEXT
+      - name: requires_certification
+        type: BOOLEAN
+
+  # Doctors/Physicians
+  - name: doctors
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: first_name
+        type: STRING
+        length: 50
+        nullable: false
+      - name: last_name
+        type: STRING
+        length: 50
+        nullable: false
+      - name: license_number
+        type: STRING
+        length: 20
+        nullable: false
+        unique: true
+      - name: email
+        type: STRING
+        length: 100
+        nullable: false
+      - name: phone
+        type: STRING
+        length: 20
+      - name: hire_date
+        type: DATE
+        nullable: false
+      - name: is_active
+        type: BOOLEAN
+      - name: specialty_id
+        type: INTEGER
+        relation:
+          targetTable: medical_specialties
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Patients
+  - name: patients
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: first_name
+        type: STRING
+        length: 50
+        nullable: false
+      - name: last_name
+        type: STRING
+        length: 50
+        nullable: false
+      - name: date_of_birth
+        type: DATE
+        nullable: false
+      - name: gender
+        type: STRING
+        length: 10
+      - name: blood_type
+        type: STRING
+        length: 5
+      - name: email
+        type: STRING
+        length: 100
+      - name: phone
+        type: STRING
+        length: 20
+        nullable: false
+      - name: address
+        type: STRING
+        length: 200
+      - name: emergency_contact
+        type: STRING
+        length: 100
+      - name: emergency_phone
+        type: STRING
+        length: 20
+      - name: insurance_number
+        type: STRING
+        length: 50
+
+  # Appointments
+  - name: appointments
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: appointment_date
+        type: DATETIME
+        nullable: false
+      - name: duration
+        type: INTEGER
+      - name: status
+        type: STRING
+        length: 20
+      - name: notes
+        type: TEXT
+      - name: cancellation_reason
+        type: TEXT
+      - name: patient_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: patients
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+      - name: doctor_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: doctors
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Medical Records
+  - name: medical_records
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: record_date
+        type: DATETIME
+        nullable: false
+      - name: diagnosis
+        type: TEXT
+        nullable: false
+      - name: symptoms
+        type: TEXT
+      - name: treatment
+        type: TEXT
+      - name: notes
+        type: TEXT
+      - name: follow_up_required
+        type: BOOLEAN
+      - name: follow_up_date
+        type: DATE
+      - name: patient_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: patients
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+      - name: doctor_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: doctors
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+      - name: appointment_id
+        type: INTEGER
+        relation:
+          targetTable: appointments
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: SET_NULL
+
+  # Prescriptions
+  - name: prescriptions
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: medication_name
+        type: STRING
+        length: 100
+        nullable: false
+      - name: dosage
+        type: STRING
+        length: 50
+        nullable: false
+      - name: frequency
+        type: STRING
+        length: 50
+        nullable: false
+      - name: start_date
+        type: DATE
+        nullable: false
+      - name: end_date
+        type: DATE
+      - name: instructions
+        type: TEXT
+      - name: refills_allowed
+        type: INTEGER
+      - name: is_active
+        type: BOOLEAN
+      - name: patient_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: patients
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+      - name: prescribed_by
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: doctors
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+      - name: medical_record_id
+        type: INTEGER
+        relation:
+          targetTable: medical_records
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: SET_NULL

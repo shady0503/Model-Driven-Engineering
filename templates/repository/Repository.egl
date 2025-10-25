@@ -1,5 +1,4 @@
-[* This template generates Spring Data JPA Repository interfaces *]
-[% for (entity in EntityContext.all) { %]
+[* This template generates a single Spring Data JPA Repository interface *]
 package [%= entity.packageName.replace('.entity', '.repository') %];
 
 import [%= entity.packageName %].[%= entity.className %];
@@ -18,4 +17,3 @@ public interface [%= entity.className %]Repository extends JpaRepository<[%= ent
     // Custom query methods can be added here
     
 }
-[% } %]

@@ -37,13 +37,13 @@
         </dependency>
 
         <!-- Database Driver -->
-        [% if (project.databaseType = "postgresql") { %]
+        [% if (project.databaseType.toLowerCase() = "postgresql") { %]
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        [% } else if (project.databaseType = "mysql") { %]
+        [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -82,6 +82,17 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>[%= project.javaVersion %]</source>
+                    <target>[%= project.javaVersion %]</target>
+                    <release>[%= project.javaVersion %]</release>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

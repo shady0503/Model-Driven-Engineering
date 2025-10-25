@@ -1,0 +1,366 @@
+# Financial Trading Platform
+# Demonstrates: Decimal types, complex relationships, audit trails
+# NOTE: Uses only features supported by current MDE metamodel
+# NOTE: DECIMAL type does not support precision/scale in current metamodel
+
+project:
+  name: TradingPlatformAPI
+  basePackage: com.trading.platform
+  language: JAVA
+  framework: SPRING_BOOT
+  database:
+    type: POSTGRESQL
+    name: trading_platform_db
+    host: localhost
+    port: 5432
+
+tables:
+  # Account Types
+  - name: account_types
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: type_name
+        type: STRING
+        length: 50
+        nullable: false
+        unique: true
+      - name: description
+        type: TEXT
+      - name: minimum_balance
+        type: DECIMAL
+      - name: monthly_fee
+        type: DECIMAL
+      - name: trading_fee_percent
+        type: DECIMAL
+
+  # Trading Accounts
+  - name: trading_accounts
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: account_number
+        type: STRING
+        length: 20
+        nullable: false
+        unique: true
+      - name: account_holder_name
+        type: STRING
+        length: 100
+        nullable: false
+      - name: email
+        type: STRING
+        length: 100
+        nullable: false
+      - name: phone
+        type: STRING
+        length: 20
+      - name: tax_id
+        type: STRING
+        length: 20
+        unique: true
+      - name: balance
+        type: DECIMAL
+        nullable: false
+      - name: available_balance
+        type: DECIMAL
+      - name: status
+        type: STRING
+        length: 20
+      - name: risk_level
+        type: STRING
+        length: 20
+      - name: opened_date
+        type: DATE
+        nullable: false
+      - name: closed_date
+        type: DATE
+      - name: is_verified
+        type: BOOLEAN
+      - name: verified_at
+        type: DATETIME
+      - name: account_type_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: account_types
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Securities (Stocks, Bonds, ETFs, etc.)
+  - name: securities
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: symbol
+        type: STRING
+        length: 10
+        nullable: false
+        unique: true
+      - name: name
+        type: STRING
+        length: 100
+        nullable: false
+      - name: security_type
+        type: STRING
+        length: 20
+        nullable: false
+      - name: exchange
+        type: STRING
+        length: 50
+      - name: sector
+        type: STRING
+        length: 50
+      - name: industry
+        type: STRING
+        length: 50
+      - name: current_price
+        type: DECIMAL
+        nullable: false
+      - name: previous_close
+        type: DECIMAL
+      - name: day_high
+        type: DECIMAL
+      - name: day_low
+        type: DECIMAL
+      - name: volume
+        type: LONG
+      - name: market_cap
+        type: LONG
+      - name: is_active
+        type: BOOLEAN
+      - name: last_updated
+        type: DATETIME
+
+  # Trade Orders
+  - name: trade_orders
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: order_number
+        type: STRING
+        length: 30
+        nullable: false
+        unique: true
+      - name: order_type
+        type: STRING
+        length: 20
+        nullable: false
+      - name: side
+        type: STRING
+        length: 10
+        nullable: false
+      - name: quantity
+        type: DECIMAL
+        nullable: false
+      - name: price
+        type: DECIMAL
+      - name: limit_price
+        type: DECIMAL
+      - name: stop_price
+        type: DECIMAL
+      - name: status
+        type: STRING
+        length: 20
+      - name: time_in_force
+        type: STRING
+        length: 20
+      - name: filled_quantity
+        type: DECIMAL
+      - name: average_fill_price
+        type: DECIMAL
+      - name: commission
+        type: DECIMAL
+      - name: placed_at
+        type: DATETIME
+        nullable: false
+      - name: executed_at
+        type: DATETIME
+      - name: cancelled_at
+        type: DATETIME
+      - name: expires_at
+        type: DATETIME
+      - name: notes
+        type: TEXT
+      - name: account_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: trading_accounts
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+      - name: security_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: securities
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Executions (Trade Fills)
+  - name: trade_executions
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: execution_id
+        type: STRING
+        length: 30
+        nullable: false
+        unique: true
+      - name: quantity
+        type: DECIMAL
+        nullable: false
+      - name: price
+        type: DECIMAL
+        nullable: false
+      - name: execution_value
+        type: DECIMAL
+        nullable: false
+      - name: commission
+        type: DECIMAL
+      - name: executed_at
+        type: DATETIME
+        nullable: false
+      - name: exchange
+        type: STRING
+        length: 50
+      - name: counterparty
+        type: STRING
+        length: 100
+      - name: order_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: trade_orders
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Portfolio Holdings
+  - name: portfolio_holdings
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: quantity
+        type: DECIMAL
+        nullable: false
+      - name: average_cost
+        type: DECIMAL
+      - name: total_cost
+        type: DECIMAL
+      - name: current_value
+        type: DECIMAL
+      - name: unrealized_gain_loss
+        type: DECIMAL
+      - name: realized_gain_loss
+        type: DECIMAL
+      - name: last_updated
+        type: DATETIME
+      - name: account_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: trading_accounts
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: CASCADE
+      - name: security_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: securities
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Transactions (Deposits, Withdrawals, Dividends)
+  - name: account_transactions
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: transaction_id
+        type: STRING
+        length: 30
+        nullable: false
+        unique: true
+      - name: transaction_type
+        type: STRING
+        length: 20
+        nullable: false
+      - name: amount
+        type: DECIMAL
+        nullable: false
+      - name: balance_after
+        type: DECIMAL
+      - name: description
+        type: STRING
+        length: 255
+      - name: reference_number
+        type: STRING
+        length: 50
+      - name: status
+        type: STRING
+        length: 20
+      - name: processed_at
+        type: DATETIME
+        nullable: false
+      - name: account_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: trading_accounts
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: RESTRICT
+
+  # Price History
+  - name: price_history
+    columns:
+      - name: id
+        type: INTEGER
+        primary: true
+        nullable: false
+      - name: price_date
+        type: DATE
+        nullable: false
+      - name: open_price
+        type: DECIMAL
+        nullable: false
+      - name: high_price
+        type: DECIMAL
+        nullable: false
+      - name: low_price
+        type: DECIMAL
+        nullable: false
+      - name: close_price
+        type: DECIMAL
+        nullable: false
+      - name: volume
+        type: LONG
+      - name: adjusted_close
+        type: DECIMAL
+      - name: security_id
+        type: INTEGER
+        nullable: false
+        relation:
+          targetTable: securities
+          targetColumn: id
+          type: MANY_TO_ONE
+          onDelete: CASCADE

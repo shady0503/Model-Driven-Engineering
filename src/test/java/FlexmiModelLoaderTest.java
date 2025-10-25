@@ -1,6 +1,7 @@
 import com.mde.ModelDrivenEngineering.BackendConfig;
 import com.mde.ModelDrivenEngineering.Database;
 import com.mde.ModelDrivenEngineering.Project;
+import com.mde.ModelDrivenEngineering.RelationType;
 import com.mde.loader.FlexmiModelLoader;
 import com.mde.loader.LoadException;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +79,7 @@ class FlexmiModelLoaderTest {
         assertNotNull(userIdColumn.getRelation(), "user_id should have a relation");
         assertEquals("users", userIdColumn.getRelation().getTargetTable());
         assertEquals("id", userIdColumn.getRelation().getTargetColumn());
+        assertEquals(RelationType.MANY_TO_ONE, userIdColumn.getRelation().getType(), "Relation type should be MANY_TO_ONE");
 
         System.out.println("✓ Blog example with relationships loaded successfully!");
     }

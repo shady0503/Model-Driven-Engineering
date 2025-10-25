@@ -293,12 +293,27 @@ public class EGLTemplateEngine {
         Path appPropsFile = resourcesDir.resolve("application.properties");
         
         generateFromTemplate(
-            "project/application.egl",
+            "config/application.properties.egl",
             appPropsFile,
             Map.of("project", project)
         );
         
         System.out.println("  ✓ application.properties");
+        
+        // Generate JPA Auditing Config
+        String packagePath = project.getPackageName().replace('.', '/');
+        Path jpaConfigPath = outputDirectory.resolve("src/main/java")
+            .resolve(packagePath)
+            .resolve("config")
+            .resolve("JpaAuditingConfig.java");
+            
+        generateFromTemplate(
+            "config/JpaAuditingConfig.egl",
+            jpaConfigPath,
+            Map.of("project", project)
+        );
+        
+        System.out.println("  ✓ JpaAuditingConfig.java");
     }
     
     /**
@@ -369,7 +384,7 @@ public class EGLTemplateEngine {
             writer.write(generatedCode);
         }
         
-        // Cleanup
-        module.getContext().getModelRepository().dispose();
+        // Note: Don't dispose model repository here as contextModel is shared across all templates
+        // The contextModel will be disposed once in generateProject() after all templates are processed
     }
 }
