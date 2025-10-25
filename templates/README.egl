@@ -1,0 +1,76 @@
+[% var project = ProjectContext.all.first(); %]
+# [%= project.artifactId %]
+
+Generated Spring Boot application using MDE Backend Generator.
+
+## 📋 Project Information
+
+- **Group ID**: [%= project.groupId %]
+- **Artifact ID**: [%= project.artifactId %]
+- **Version**: [%= project.version %]
+- **Java Version**: [%= project.javaVersion %]
+- **Spring Boot Version**: [%= project.springBootVersion %]
+- **Database**: [%= project.databaseType.toUpperCase() %]
+
+## 🏗️ Generated Entities
+
+[% for (entity in project.entities) { %]
+### [%= entity.className %]
+- **Table**: `[%= entity.tableName %]`
+- **Fields**: [%= entity.fields.size() %]
+[% if (entity.hasRelationships) { %]
+- **Relationships**: [%= entity.relations.size() %]
+[% } %]
+
+[% } %]
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Java [%= project.javaVersion %] or higher
+- Maven 3.8+
+- Docker (for database)
+
+### Running the Application
+
+1. **Start the database**:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Build the application**:
+   ```bash
+   mvn clean install
+   ```
+
+3. **Run the application**:
+   ```bash
+   mvn spring-boot:run
+   ```
+
+The API will be available at: `http://localhost:8080`
+
+## 📚 API Endpoints
+
+[% for (entity in project.entities) { %]
+### [%= entity.className %]
+
+- `POST /api/[%= entity.tableName %]` - Create new [%= entity.className %]
+- `GET /api/[%= entity.tableName %]` - Get all [%= entity.className %]
+- `GET /api/[%= entity.tableName %]/{id}` - Get [%= entity.className %] by ID
+- `PUT /api/[%= entity.tableName %]/{id}` - Update [%= entity.className %]
+- `DELETE /api/[%= entity.tableName %]/{id}` - Delete [%= entity.className %]
+
+[% } %]
+
+## 🧪 Testing
+
+Run tests with:
+```bash
+mvn test
+```
+
+## 📝 License
+
+This is generated code. Add your license information here.
