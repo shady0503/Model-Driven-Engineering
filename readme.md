@@ -1,5 +1,5 @@
-# Complete Step-by-Step Implementation Guide
-## YAML-to-Spring Boot Generator with Eclipse EMF/Ecore
+# Model-Driven Backend Generator
+## YAML-to-Spring Boot Code Generation using Eclipse EMF and Epsilon
 
 ---
 
@@ -22,13 +22,13 @@ Week 6:   Polish & Documentation
 
 ✅ **COMPLETED** - The project follows standard Maven structure:
 
-1. Main project directory exists: `model-driven-engineering/`
-2. Standard Maven directories created:
+1. Main project directory: `model-driven-engineering/`
+2. Standard Maven directories:
    - `src/main/java` - Java source code ✅
    - `src/main/resources` - Configuration files ✅
    - `src/test/java` - Unit tests ✅
    - `model/` - Ecore model files (`MDE.ecore`, `MDE.genmodel`) ✅
-   - `templates/` - Created but empty ⚠️
+   - `templates/` - EGL templates (created but empty) ⚠️
    - `examples/` - Two working YAML examples ✅
 
 ## Step 1.2: Set Up Maven Configuration
@@ -36,7 +36,7 @@ Week 6:   Polish & Documentation
 ✅ **COMPLETED** - `pom.xml` configured with:
 - Java 17 as compiler target ✅
 - Eclipse EMF dependencies (ecore, common, xmi) ✅
-- **Eclipse Epsilon** dependencies for the full transformation stack:
+- **Eclipse Epsilon** dependencies for the transformation stack:
   - **Flexmi** for T2M parsing (YAML → Model) ✅
   - **ETL** (Epsilon Transformation Language) for M2M transformations ⚠️
   - **EGL** (Epsilon Generation Language) for M2T code generation ⚠️
@@ -45,7 +45,7 @@ Week 6:   Polish & Documentation
 - JUnit 5 for testing ✅
 - Maven Shade plugin configuration pending ⚠️
 
-**MDE Note**: This Maven project uses the **Eclipse Epsilon stack** - an integrated family of MDE languages and tools. Epsilon provides a consistent approach across all transformation types: Text-to-Model (Flexmi), Model-to-Model (ETL), and Model-to-Text (EGL), all with shared OCL-based query capabilities and metamodel awareness.
+**MDE Note**: This project uses the **Eclipse Epsilon stack** - an integrated family of MDE languages and tools. Epsilon provides a consistent approach across all transformation types: Text-to-Model (Flexmi), Model-to-Model (ETL), and Model-to-Text (EGL), all with shared EOL-based query capabilities and metamodel awareness.
 
 ## Step 1.3: Install Eclipse Modeling Tools
 
@@ -81,7 +81,7 @@ This creates a well-founded metamodeling stack where each layer is precisely def
 
 ✅ **COMPLETED** - File created: `model/MDE.ecore`
 
-**Important**: The metamodel file is named `MDE.ecore` (not `backendgen.ecore`), establishing our namespace as `com.mde.ModelDrivenEngineering`.
+The metamodel establishes our namespace as `com.mde.ModelDrivenEngineering`.
 
 ## Step 2.3: Define Root Container Class
 
@@ -132,7 +132,7 @@ This creates a well-founded metamodeling stack where each layer is precisely def
 - Compliance Level: Java 17 ✅
 - Copyright text and other generation properties configured ✅
 
-**MDE Context**: The GenModel is a *model-to-model (M2M)* transformation specification that controls how our Ecore metamodel (M2) is transformed into Java code, which then serves as the foundation for *model-to-text (M2T)* transformations.
+**MDE Context**: The GenModel is a *model-to-model (M2M)* transformation specification that controls how our Ecore metamodel (M2) is transformed into Java code, which then serves as the foundation for further transformations.
 
 ## Step 2.7: Generate Java Model Code
 
@@ -168,7 +168,7 @@ Generated package structure in `src/main/java/com/mde/ModelDrivenEngineering/`:
 - EMF's notification and adapter framework integrated ✅
 - Serialization support (XMI) available ✅
 
-**Current Package**: `com.mde.ModelDrivenEngineering` (NOT `com.backendgen.model`)
+**Current Package**: `com.mde.ModelDrivenEngineering`
 
 ---
 
@@ -176,7 +176,7 @@ Generated package structure in `src/main/java/com/mde/ModelDrivenEngineering/`:
 
 **Status: ✅ MOSTLY COMPLETED (~85%)**
 
-**ARCHITECTURAL DECISION**: Instead of implementing a manual YAML parser using SnakeYAML as originally planned, this project leverages **Flexmi** - a flexible metamodel-driven parser from Eclipse Epsilon that automatically handles YAML-to-Ecore model transformation.
+**ARCHITECTURAL DECISION**: This project leverages **Flexmi** - a flexible metamodel-driven parser from Eclipse Epsilon that automatically handles YAML-to-Ecore model transformation.
 
 **MDE Advantages of Flexmi Approach:**
 1. **Metamodel-Driven Parsing**: Flexmi reads our Ecore metamodel and automatically understands how to parse YAML into model instances - a true *conformsTo* relationship
@@ -211,8 +211,6 @@ Files created:
 - `ModelPackageRegistrar.java` - Package and factory registration ✅
 - `LoadException.java` - Custom exception class ✅
 
-**Note**: Package named `loader` (not `parser`) to reflect the metamodel-driven loading approach rather than manual parsing.
-
 ## Step 3.3: Implement Main Parser Class
 
 ✅ **COMPLETED** - `FlexmiModelLoader` implemented with:
@@ -239,7 +237,7 @@ public BackendConfig load(Path path) throws LoadException
 
 ✅ **NOT NEEDED** - Flexmi handles this automatically!
 
-Instead of manual section parsers (parseProject(), parseDatabase(), etc.), Flexmi automatically:
+Flexmi automatically:
 - Recognizes YAML structure based on metamodel
 - Creates appropriate EClass instances
 - Populates attributes from YAML properties
@@ -359,7 +357,7 @@ Errors in YAML file:
 
 **Status: ❌ NOT STARTED (~5%)**
 
-**MDE Context**: This phase implements *Model-to-Text (M2T) transformations* where platform-independent models (M1 layer) are transformed into platform-specific code (Java source files). This is the core generative aspect of our MDSE approach.
+**MDE Context**: This phase implements *Model-to-Text (M2T) transformations* using EGL (Epsilon Generation Language). Platform-independent models (M1 layer) are transformed into platform-specific code (Java source files). This is the core generative aspect of our MDSE approach.
 
 ## Step 4.1: Choose Template Engine
 
@@ -371,9 +369,9 @@ Errors in YAML file:
 - **Template-based**: Separates static code structure from dynamic model-driven content
 - **Integrated tooling**: Part of Eclipse Epsilon ecosystem alongside Flexmi and ETL
 - **Protected regions**: Built-in support for preserving manually-written code sections
-- **Mature MDE tool**: Specifically designed for model-to-text transformations, not generic templating
+- **Mature MDE tool**: Specifically designed for model-to-text transformations
 
-**MDE Principle**: EGL is a dedicated M2T transformation language (like Acceleo, Xtend, or MOFScript from the MDE book) rather than a general-purpose template engine. It provides first-class support for models, metamodels, and MDE concepts that generic template engines lack.
+**MDE Principle**: EGL is a dedicated M2T transformation language that provides first-class support for models, metamodels, and MDE concepts.
 
 **Epsilon Stack Integration:**
 - **Flexmi** (T2M): YAML → BackendConfig model
@@ -572,16 +570,16 @@ public class [%= entity.className %] {
 
 ## Step 4.7: Create Repository Template
 
-❌ **NOT STARTED** - `Repository.java.mustache` to be designed
+❌ **NOT STARTED** - `Repository.egl` to be designed
 
 **Template Should Include:**
-- Interface extending `JpaRepository<{{EntityName}}, {{IdType}}>`
-- Package: `com.{{groupId}}.{{projectName}}.repository`
+- Interface extending `JpaRepository<[%= EntityName %], [%= IdType %]>`
+- Package: `com.[%= groupId %].[%= projectName %].repository`
 - Custom query method placeholders
 
 ## Step 4.8: Create Service Template
 
-❌ **NOT STARTED** - `Service.java.mustache` to be designed
+❌ **NOT STARTED** - `Service.egl` to be designed
 
 **Template Should Include:**
 - @Service annotation
@@ -591,7 +589,7 @@ public class [%= entity.className %] {
 
 ## Step 4.9: Create Controller Template
 
-❌ **NOT STARTED** - `Controller.java.mustache` to be designed
+❌ **NOT STARTED** - `Controller.egl` to be designed
 
 **Template Should Include:**
 - @RestController and @RequestMapping
@@ -601,10 +599,10 @@ public class [%= entity.className %] {
 
 ## Step 4.10: Create Docker Compose Template
 
-❌ **NOT STARTED** - `docker-compose.yml.mustache` to be designed
+❌ **NOT STARTED** - `docker-compose.egl` to be designed
 
 **Template Should Include:**
-- Database service definition (PostgreSQL/MySQL based on {{databaseType}})
+- Database service definition (PostgreSQL/MySQL based on `[%= databaseType %]`)
 - Environment variables
 - Port mapping
 - Volume configuration
@@ -616,7 +614,7 @@ public class [%= entity.className %] {
 **Template Should Include:**
 - @SpringBootApplication annotation
 - main() method with SpringApplication.run()
-- Package: `com.{{groupId}}.{{projectName}}`
+- Package: `com.[%= groupId %].[%= projectName %]`
 
 ## Step 4.12: Create README Template
 
@@ -694,7 +692,7 @@ This leverages the **Epsilon family's** integrated approach where all languages 
 
 **Key Epsilon Components:**
 
-- **ETL Module**: Declarative transformation rules (like ATL from the MDE book)
+- **ETL Module**: Declarative transformation rules
   ```etl
   rule BackendConfigToProjectContext 
     transform bc : BackendConfig!BackendConfig
@@ -804,13 +802,18 @@ operation DataType mapToJavaType() : String {
     "INTEGER" = "Integer",
     "LONG" = "Long",
     "UUID" = "UUID",
-    // ... more mappings
+    "BOOLEAN" = "Boolean",
+    "DATE" = "LocalDate",
+    "TIMESTAMP" = "LocalDateTime",
+    "TEXT" = "String",
+    "DOUBLE" = "Double",
+    "FLOAT" = "Float"
   };
   return mapping.get(self.name());
 }
 ```
 
-**MDE Concept**: ETL rules are *declarative M2M transformations* similar to ATL (from the MDE book). Each rule specifies:
+**MDE Concept**: ETL rules are *declarative M2M transformations*. Each rule specifies:
 - **Source pattern**: What model elements to match (e.g., `Source!Table`)
 - **Target pattern**: What model elements to create (e.g., `Target!EntityContext`)
 - **Bindings**: How to populate target attributes from source attributes
@@ -1073,7 +1076,8 @@ mde-backend-gen help
 - Accept YAML file path as required argument
 - Accept options: --output-dir, --no-zip, --overwrite, --clean
 - Use FlexmiModelLoader to parse YAML into BackendConfig
-- Invoke code generator with loaded model
+- Execute ETL transformation to create Context model
+- Execute EGL templates to generate code
 - Create ZIP archive unless --no-zip specified
 - Print success message with output location
 - Return exit code 0 on success, non-zero on failure
@@ -1140,8 +1144,8 @@ mde-backend-gen help
 
 **Verbose Mode Should Show:**
 - Detailed parsing steps
-- Context object creation
-- Template processing per file
+- ETL transformation execution
+- EGL template processing per file
 - File write operations
 - Timing information
 - Memory usage
@@ -1341,18 +1345,18 @@ Example: {correctUsage}
 - Test case that should fail ✗
 - Edge cases (boundary conditions)
 
-## Step 8.4: Unit Test Mappers
+## Step 8.4: Unit Test ETL Transformations
 
-❌ **NOT STARTED** - Mapper tests to be created
+❌ **NOT STARTED** - ETL transformation tests to be created
 
-**Mapper Tests Should Verify:**
+**ETL Tests Should Verify:**
 - Type conversions (DataType → Java type)
 - Name transformations (snake_case → camelCase, PascalCase)
 - Relationship mappings (RelationType → JPA annotations)
-- Default value application
-- Null handling
+- Helper operations work correctly
+- Trace links are created properly
 
-**MDE Principle**: Mapper tests validate the *M2M transformation* from PIM (BackendConfig) to PSM (Context objects).
+**MDE Principle**: ETL tests validate the *M2M transformation* from PIM (BackendConfig) to PSM (Context objects).
 
 ## Step 8.5: Integration Test Generator
 
@@ -1360,12 +1364,13 @@ Example: {correctUsage}
 
 **Integration Test Should:**
 1. Start with valid YAML file
-2. Parse to BackendConfig model
-3. Validate model
-4. Generate code via full pipeline
-5. Verify all expected files created
-6. Verify file contents match expectations
-7. Verify generated project structure is correct
+2. Parse to BackendConfig model (Flexmi)
+3. Transform to Context model (ETL)
+4. Validate models
+5. Generate code (EGL)
+6. Verify all expected files created
+7. Verify file contents match expectations
+8. Verify generated project structure is correct
 
 **MDE Note**: Integration tests validate the complete *PIM → PSM → Code* transformation chain.
 
@@ -1488,7 +1493,7 @@ Example: {correctUsage}
 1. **Architecture Overview**
    - Four-layer metamodeling stack explanation
    - Package structure and responsibilities
-   - Transformation pipeline description
+   - Epsilon transformation pipeline description
 
 2. **Metamodel Guide**
    - Ecore metamodel walkthrough
@@ -1497,7 +1502,8 @@ Example: {correctUsage}
    - Constraints and well-formedness rules
 
 3. **Extension Points**
-   - How to add new templates
+   - How to add new EGL templates
+   - How to extend ETL transformations
    - How to add new database types (extend DatabaseType enum)
    - How to add new frameworks (extend Framework enum)
    - How to add custom validators
@@ -1580,7 +1586,7 @@ Example: {correctUsage}
    - Maintainability assessment
    - Extensibility evaluation
 
-**MDE Academic Context**: Report demonstrates understanding of MDSE principles, metamodeling, and transformation techniques as covered in the MDE textbook.
+**MDE Academic Context**: Report demonstrates understanding of MDSE principles, metamodeling, and transformation techniques.
 
 ---
 
@@ -1632,7 +1638,7 @@ java -jar mde-backend-gen.jar %*
 **Distribution Should Include:**
 - Executable JAR (`mde-backend-gen.jar`)
 - Wrapper scripts (Unix and Windows)
-- README.md with installation instructions
+- README with installation instructions
 - LICENSE file
 - Example YAML files (minimal, blog, e-commerce, social)
 - PDF documentation
@@ -1664,7 +1670,7 @@ mde-backend-generator/
 ├── src/                    # Source code
 ├── model/                  # Ecore metamodel
 ├── examples/               # Example YAML files
-├── templates/              # Mustache templates
+├── templates/              # EGL templates
 ├── docs/                   # Documentation
 ├── .github/
 │   └── workflows/          # CI/CD pipelines
@@ -1727,8 +1733,9 @@ mde-backend-generator/
 
 **MDE Principle**: Each extension involves three steps:
 1. Extend metamodel (add new EClasses/EAttributes/EEnums)
-2. Update templates (add new generation logic)
-3. Maintain backward compatibility (existing models still valid)
+2. Update ETL rules (transform new concepts)
+3. Update EGL templates (generate code for new concepts)
+4. Maintain backward compatibility (existing models still valid)
 
 ## Step 11.2: Plan Framework Extensions
 
@@ -1815,7 +1822,7 @@ mde-backend-generator/
 ## Academic Requirements (MDE)
 - [x] Demonstrates MDE principles (metamodeling, conformsTo)
 - [x] Shows meta-modeling understanding (Ecore metamodel)
-- [x] Documents design decisions (Flexmi choice, metamodel structure)
+- [x] Documents design decisions (Flexmi, Epsilon stack)
 - [ ] Compares approaches
 - [ ] Discusses trade-offs
 
@@ -1859,46 +1866,46 @@ mde-backend-generator/
    - Protected regions for partial generation
    - Integration with Epsilon model management
 
-6. **Parser Implementation**: Metamodel-driven parsing
+7. **Parser Implementation**: Metamodel-driven parsing
    - Flexmi's metamodel-based YAML parsing
    - Automatic validation during parsing
    - Type-safe model instance creation
 
 ## Validation & Quality
-7. **Validation Frameworks**: Model and data validation
+8. **Validation Frameworks**: Model and data validation
    - EMF's built-in validation (structural, type, multiplicity)
    - Custom domain-specific validation rules
    - Well-formedness constraints
 
-8. **Software Architecture**: Layered design patterns
+9. **Software Architecture**: Layered design patterns
    - Metamodel layer (M2)
    - Model layer (M1)
    - Code layer (M0)
    - Transformation layer
 
 ## Platform Technologies
-9. **Java Enterprise**: Spring Boot, JPA, REST APIs
-   - Understanding target platform requirements
-   - Platform-specific model (PSM) design
-   - Mapping domain concepts to implementation technologies
+10. **Java Enterprise**: Spring Boot, JPA, REST APIs
+    - Understanding target platform requirements
+    - Platform-specific model (PSM) design
+    - Mapping domain concepts to implementation technologies
 
-10. **Tool Development**: CLI design and implementation
+11. **Tool Development**: CLI design and implementation
     - Command-line interface patterns
     - User experience in model-driven tools
     - Tool integration and automation
 
 ## Advanced MDE Concepts
-11. **Technical Spaces**: Modelware vs. Grammarware
+12. **Technical Spaces**: Modelware vs. Grammarware
     - Model representations (Ecore, XMI)
     - Grammar representations (EBNF, YAML)
     - Bridges between technical spaces
 
-12. **Model Management**: Handling models as software artifacts
+13. **Model Management**: Handling models as software artifacts
     - Model persistence and serialization
     - Cross-reference resolution
     - Model validation and verification
 
-13. **Generative Programming**: Automation through models
+14. **Generative Programming**: Automation through models
     - Productivity gains from generation
     - Maintaining generated vs. manual code
     - Protected regions and regeneration strategies
@@ -1907,7 +1914,7 @@ mde-backend-generator/
 
 # 📚 MDE Concepts Demonstrated
 
-**This project exemplifies key MDSE principles from the Model-Driven Software Engineering textbook:**
+**This project exemplifies key MDSE principles:**
 
 ## Metamodeling
 - **Four-Layer Stack**: M0 (runtime data) ← M1 (YAML models) ← M2 (MDE.ecore) ← M3 (Ecore)
@@ -1928,11 +1935,11 @@ mde-backend-generator/
 ## Domain-Specific Languages
 - **Abstract Syntax**: Defined by MDE.ecore metamodel
 - **Concrete Syntax**: YAML notation for user-facing DSL
-- **Language Suite**: Multiple diagram types possible (future: visual editor)
+- **Language Suite**: Multiple notations possible (future: visual editor)
 
 ## Platform-Independent/Specific Models
 - **PIM**: BackendConfig model (platform-agnostic domain model)
-- **PSM**: Context objects (Spring Boot specific)
+- **PSM**: Context model (Spring Boot specific)
 - **Code**: Java source files (JVM bytecode platform)
 
 ## Separation of Concerns
@@ -1945,7 +1952,7 @@ mde-backend-generator/
 # 🔄 Current Implementation Status Summary
 
 ## ✅ Completed Phases (40%)
-1. **Project Setup** - Maven, dependencies, directory structure
+1. **Project Setup** - Maven, Epsilon dependencies, directory structure
 2. **Metamodel Definition** - Complete Ecore metamodel with 8 EClasses, 7 EEnums
 3. **Model Code Generation** - All EMF-generated Java interfaces and implementations
 4. **YAML Parsing** - Flexmi-based metamodel-driven parsing
@@ -2006,19 +2013,20 @@ mde-backend-generator/
 
 ---
 
-# 🔧 Technology Stack Alignment with MDE Book
+# 🔧 Eclipse Epsilon Technology Stack
 
-**This README follows the Eclipse Epsilon stack for all transformations:**
+**This project uses the Eclipse Epsilon family of MDE languages for all model transformations:**
 
-## **Book's Recommendations vs. Our Choices:**
+## **Tool Selection:**
 
-| Transformation Type | Book's Primary Choice | Our Choice | Rationale |
-|---------------------|----------------------|------------|-----------|
-| **M3 Metamodel** | Ecore (EMF) | ✅ **Ecore (EMF)** | Standard choice |
-| **M2 Metamodel** | Ecore editors | ✅ **Ecore editors** | Standard choice |
-| **T2M Parsing** | Xtext, EMFText | ✅ **Flexmi** (Epsilon) | Metamodel-driven YAML parsing |
-| **M2M Transform** | **ATL**, QVT, TGG | ✅ **ETL** (Epsilon) | Declarative, integrated with Epsilon |
-| **M2T Generation** | **Acceleo**, Xtend, MOFScript | ✅ **EGL** (Epsilon) | Template-based, integrated with Epsilon |
+| Transformation Type | Technology | Purpose |
+|---------------------|------------|---------|
+| **M3 Metamodel** | Ecore (EMF) | Meta-metamodel (reflexive) |
+| **M2 Metamodel** | Ecore editors | Define BackendConfig and Context metamodels |
+| **T2M Parsing** | **Flexmi** (Epsilon) | YAML → BackendConfig model |
+| **M2M Transform** | **ETL** (Epsilon) | BackendConfig → Context model |
+| **M2T Generation** | **EGL** (Epsilon) | Context model → Java code |
+| **Query Language** | **EOL** (Epsilon) | OCL-extended model queries |
 
 ## **Why Eclipse Epsilon Stack?**
 
@@ -2027,25 +2035,41 @@ mde-backend-generator/
    - Consistent syntax and concepts across all tools
    - Single dependency management
 
-2. **Book Recognition**: The MDE textbook mentions Epsilon tools:
-   - **ETL** listed as alternative to ATL for M2M transformations
-   - Part of Eclipse modeling ecosystem alongside ATL/Acceleo
-   - Academic and industry proven
-
-3. **MDE Principles**: All Epsilon tools are MDE-specific (not generic)
+2. **MDE-Specific**: All Epsilon tools are designed for model-driven engineering
    - Metamodel-aware transformations
    - OCL-based querying (via EOL)
    - Built-in traceability support
    - Protected regions for partial generation
 
-4. **Practical Benefits**:
+3. **Practical Benefits**:
    - Already using Flexmi successfully for parsing
    - Easier learning curve (one language family)
    - Better tool integration
    - Active Eclipse community
+   - Mature and well-documented
 
-**Academic Note**: While the book's primary examples use ATL (M2M) and Acceleo (M2T), it explicitly presents Epsilon as a valid alternative approach. Both paths demonstrate the same MDE principles: metamodel-driven development, declarative transformations, and model-aware code generation.
+4. **Academic Recognition**: The Eclipse Epsilon project is recognized in MDE literature as a comprehensive model management platform, providing alternatives to other transformation approaches like ATL/Acceleo.
+
+## **Epsilon Language Relationships:**
+
+```
+┌─────────────────────────────────────┐
+│   Eclipse Epsilon Platform          │
+│                                      │
+│  ┌────────────────────────────┐    │
+│  │  EOL (Epsilon Object Lang)  │    │
+│  │  - OCL-extended queries     │    │
+│  │  - Model navigation         │    │
+│  └────────────────────────────┘    │
+│           ▲        ▲        ▲       │
+│           │        │        │       │
+│  ┌────────┴──┐ ┌──┴─────┐ ┌┴────┐ │
+│  │  Flexmi   │ │  ETL   │ │ EGL │ │
+│  │  (T2M)    │ │ (M2M)  │ │(M2T)│ │
+│  └───────────┘ └────────┘ └─────┘ │
+└─────────────────────────────────────┘
+```
 
 ---
 
-**This README accurately reflects the current state of the Model-Driven Engineering Backend Generator project, incorporating both the actual implementation details and the foundational MDSE principles that guide its architecture and design, while using the Eclipse Epsilon stack as an integrated alternative to ATL/Acceleo.**
+**This README documents the Model-Driven Engineering Backend Generator project using the Eclipse Epsilon stack for a complete, integrated transformation pipeline from YAML models to working Spring Boot applications.**
