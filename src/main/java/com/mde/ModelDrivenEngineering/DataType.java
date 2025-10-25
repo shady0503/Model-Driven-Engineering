@@ -96,7 +96,15 @@ public enum DataType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	DECIMAL(7, "Decimal", "DECIMAL");
+	DECIMAL(7, "Decimal", "DECIMAL"), /**
+	 * The '<em><b>Date Time</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #DATE_TIME_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	DATE_TIME(8, "DateTime", "DATETIME");
 
 	/**
 	 * The '<em><b>String</b></em>' literal value.
@@ -187,6 +195,17 @@ public enum DataType implements Enumerator {
 	public static final int DECIMAL_VALUE = 7;
 
 	/**
+	 * The '<em><b>Date Time</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #DATE_TIME
+	 * @model name="DateTime" literal="DATETIME"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int DATE_TIME_VALUE = 8;
+
+	/**
 	 * An array of all the '<em><b>Data Type</b></em>' enumerators.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -202,6 +221,7 @@ public enum DataType implements Enumerator {
 			TEXT,
 			UUID,
 			DECIMAL,
+			DATE_TIME,
 		};
 
 	/**
@@ -266,6 +286,7 @@ public enum DataType implements Enumerator {
 			case TEXT_VALUE: return TEXT;
 			case UUID_VALUE: return UUID;
 			case DECIMAL_VALUE: return DECIMAL;
+			case DATE_TIME_VALUE: return DATE_TIME;
 		}
 		return null;
 	}
