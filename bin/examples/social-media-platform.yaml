@@ -75,7 +75,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "following_id"
@@ -85,7 +85,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "created_at"
@@ -121,7 +121,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "created_at"
@@ -149,7 +149,7 @@ BackendConfig:
                     Relation:
                       targetTable: "comments"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "user_id"
@@ -159,7 +159,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "post_id"
@@ -169,7 +169,7 @@ BackendConfig:
                     Relation:
                       targetTable: "posts"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "created_at"
@@ -194,7 +194,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "post_id"
@@ -204,7 +204,7 @@ BackendConfig:
                     Relation:
                       targetTable: "posts"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "created_at"
@@ -247,7 +247,7 @@ BackendConfig:
                     Relation:
                       targetTable: "posts"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "hashtag_id"
@@ -257,7 +257,7 @@ BackendConfig:
                     Relation:
                       targetTable: "hashtags"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
         - Table:
             name: "direct_messages"
@@ -275,7 +275,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "recipient_id"
@@ -285,7 +285,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "content"
@@ -314,7 +314,7 @@ BackendConfig:
                     Relation:
                       targetTable: "users"
                       targetColumn: "id"
-                      type: manyToOne
+                      type: MANY_TO_ONE
                       onDelete: CASCADE
               - Column:
                   name: "message"

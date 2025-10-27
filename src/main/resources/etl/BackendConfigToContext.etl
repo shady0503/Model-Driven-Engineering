@@ -88,10 +88,11 @@ rule TableToEntityContext
     // Transform columns to fields (exclude foreign key columns - they become relationships)
     ec.fields = t.columns.select(c | not c.relation.isDefined()).equivalent();
     
-    // Transform relations (columns with foreign keys)
-    ec.relations = t.columns.select(c | c.relation.isDefined())
-                            .collect(c | c.relation)
-                            .equivalent();
+    // Transform foreign key columns to relations
+    for (col in t.columns.select(c | c.relation.isDefined())) {
+        var rel = col.equivalent("ColumnWithRelationToRelationContext");
+        ec.relations.add(rel);
+    }
     
     // Set hasRelationships flag
     ec.hasRelationships = ec.relations.size() > 0;
@@ -137,10 +138,71 @@ rule ColumnToFieldContext
 }
 
 /*****************************************************************************
- * RULE 4: Relation → RelationContext
+ * RULE 4: Column (with Relation) → RelationContext
  * 
- * Transforms foreign key relations into relation context objects
+ * Transforms foreign key columns into relation context objects
  * Each RelationContext represents a JPA relationship (@ManyToOne, @OneToMany, etc.)
+ *****************************************************************************/
+@lazy
+rule ColumnWithRelationToRelationContext 
+    transform c : Source!Column
+    to rc : Target!RelationContext {
+    
+    guard : c.isDefined() and c.relation.isDefined()
+    
+    var r = c.relation;
+    
+    // Relationship type
+    rc.relationType = r.type.toString();  // MANY_TO_ONE, ONE_TO_MANY, etc.
+    
+    // Target entity information - store table name, will be resolved in post-processing
+    var targetTableName = getTargetTableName(r.targetTable);
+    // Store table name temporarily - will be converted to className in post
+    rc.targetEntity = targetTableName;
+    
+    // Join column is the column name itself
+    rc.joinColumnName = c.name;
+    
+    // Mapped by (for bidirectional relationships)
+    rc.mappedBy = r.determineMappedBy();
+    
+    // Cascade type (single string, not array)
+    if (r.onDelete.isDefined()) {
+        rc.cascadeType = r.onDelete.toString();
+    } else if (r.cascadeTypes.isDefined() and r.cascadeTypes.size() > 0) {
+        rc.cascadeType = r.cascadeTypes.first().toString();
+    } else {
+        rc.cascadeType = "ALL";
+    }
+    
+    // Fetch type
+    if (r.fetchType.isDefined()) {
+        rc.fetchType = r.fetchType.toString();
+    } else {
+        rc.fetchType = "LAZY";
+    }
+    
+    // Owner flag
+    rc.isOwner = r.type.toString() = "MANY_TO_ONE";
+    
+    // Field name for the relationship
+    // Use the column name to derive field name (e.g., "follower_id" → "follower")
+    if (c.name.endsWith("_id")) {
+        // Remove "_id" suffix and convert to camelCase
+        // Example: "follower_id" → "follower", "user_id" → "user"
+        rc.fieldName = c.name.substring(0, c.name.length() - 3).toCamelCase();
+    } else {
+        rc.fieldName = c.name.toCamelCase();
+    }
+    
+    ("Created RelationContext: " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
+}
+
+/*****************************************************************************
+ * RULE 4 (OLD): Relation → RelationContext
+ * 
+ * DEPRECATED - Kept for backward compatibility
+ * Use ColumnWithRelationToRelationContext instead
  *****************************************************************************/
 @lazy
 rule RelationToRelationContext 
@@ -189,8 +251,18 @@ rule RelationToRelationContext
     // Owner flag
     rc.isOwner = r.type.toString() = "MANY_TO_ONE";
     
-    // Field name for the relationship (reuse already fetched targetTableName)
-    rc.fieldName = targetTableName.singular();
+    // Field name for the relationship
+    // If join column is defined (e.g., "follower_id"), use it to derive field name ("follower")
+    // Otherwise, fall back to singular form of target table name
+    if (rc.joinColumnName.isDefined() and rc.joinColumnName.endsWith("_id")) {
+        // Remove "_id" suffix and convert to camelCase
+        // Example: "follower_id" → "follower", "user_id" → "user"
+        rc.fieldName = rc.joinColumnName.substring(0, rc.joinColumnName.length() - 3).toCamelCase();
+    } else if (rc.joinColumnName.isDefined()) {
+        rc.fieldName = rc.joinColumnName.toCamelCase();
+    } else {
+        rc.fieldName = targetTableName.singular();
+    }
     
     ("Created RelationContext: " + rc.relationType + " to " + rc.targetEntity).println();
 }
@@ -438,7 +510,14 @@ operation createInverseRelationships() {
                 var inverseRelation = new Target!RelationContext;
                 inverseRelation.relationType = "ONE_TO_MANY";
                 inverseRelation.targetEntity = entity.className;
-                inverseRelation.fieldName = entity.tableName.toCamelCase(); // Convert to camelCase (e.g., "order_items" → "orderItems")
+                
+                // Generate unique field name by combining table name with the FK field name
+                // Example: for UserFollows.follower → Users, create "followerUserFollows"
+                //          for UserFollows.following → Users, create "followingUserFollows"
+                var baseFieldName = entity.tableName.toCamelCase();
+                var uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase();
+                inverseRelation.fieldName = uniqueFieldName;
+                
                 inverseRelation.mappedBy = relation.fieldName; // field name in the owning side
                 inverseRelation.cascadeType = "ALL";
                 inverseRelation.fetchType = "LAZY";
