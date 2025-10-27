@@ -1,5 +1,6 @@
 package com.mde.loader;
 
+import com.mde.cli.ConsoleSymbols;
 import com.mde.ModelDrivenEngineering.ModelDrivenPackage;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -53,9 +54,9 @@ public class ModelPackageRegistrar {
         // Check if already registered
         if (!globalRegistry.containsKey(ModelDrivenPackage.eNS_URI)) {
             globalRegistry.put(ModelDrivenPackage.eNS_URI, ModelDriven);
-            System.out.println("  ✓ Package registered with URI: " + ModelDrivenPackage.eNS_URI);
+            System.out.println("  " + ConsoleSymbols.SUCCESS + " Package registered with URI: " + ModelDrivenPackage.eNS_URI);
         } else {
-            System.out.println("  ℹ Package already registered");
+            System.out.println("  " + ConsoleSymbols.INFO + " Package already registered");
         }
 
         // Step 3: Register Flexmi resource factory for YAML files
@@ -64,13 +65,13 @@ public class ModelPackageRegistrar {
         // Register for .yaml extension
         if (!factoryRegistry.getExtensionToFactoryMap().containsKey("yaml")) {
             factoryRegistry.getExtensionToFactoryMap().put("yaml", new FlexmiResourceFactory());
-            System.out.println("  ✓ Flexmi factory registered for .yaml files");
+            System.out.println("  " + ConsoleSymbols.SUCCESS + " Flexmi factory registered for .yaml files");
         }
 
         // Register for .flexmi extension (alternative extension)
         if (!factoryRegistry.getExtensionToFactoryMap().containsKey("flexmi")) {
             factoryRegistry.getExtensionToFactoryMap().put("flexmi", new FlexmiResourceFactory());
-            System.out.println("  ✓ Flexmi factory registered for .flexmi files");
+            System.out.println("  " + ConsoleSymbols.SUCCESS + " Flexmi factory registered for .flexmi files");
         }
 
         // Set flag
