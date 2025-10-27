@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.mde.cli.ConsoleSymbols;
 import com.mde.generator.egl.EGLTemplateEngine;
 import com.mde.generator.etl.ETLTransformationEngine;
 import com.mde.loader.FlexmiModelLoader;
@@ -74,7 +75,7 @@ public class CodeGenerator {
             System.out.println("│ PHASE 1: Text-to-Model Transformation (T2M/Flexmi) │");
             System.out.println("└─────────────────────────────────────────────────────┘");
             BackendConfig backendConfig = modelLoader.load(yamlFile);
-            System.out.println("✓ YAML parsed successfully");
+            System.out.println(ConsoleSymbols.success("YAML parsed successfully"));
             System.out.println("  Project: " + backendConfig.getProject().getName());
             System.out.println("  Tables:  " + backendConfig.getDatabase().getTables().size());
             System.out.println();
@@ -97,7 +98,7 @@ public class CodeGenerator {
             
             // Success!
             System.out.println("╔════════════════════════════════════════════════════════╗");
-            System.out.println("║            ✓ GENERATION SUCCESSFUL!                   ║");
+            System.out.println("║            " + ConsoleSymbols.SUCCESS + " GENERATION SUCCESSFUL!                   ║");
             System.out.println("╚════════════════════════════════════════════════════════╝");
             System.out.println();
             System.out.println("Generated project location:");

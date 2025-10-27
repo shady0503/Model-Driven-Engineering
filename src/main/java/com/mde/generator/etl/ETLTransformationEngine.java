@@ -1,8 +1,11 @@
 package com.mde.generator.etl;
 
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
@@ -29,7 +32,7 @@ import com.mde.generator.Context.ContextPackage;
  */
 public class ETLTransformationEngine {
 
-    private static final String ETL_SCRIPT_PATH = "src/main/resources/etl/BackendConfigToContext.etl";
+    private static final String ETL_SCRIPT_RESOURCE = "/etl/BackendConfigToContext.etl";
     
     /**
      * Execute ETL transformation with in-memory model (no intermediate files)
@@ -45,7 +48,7 @@ public class ETLTransformationEngine {
         System.out.println("===========================================");
         System.out.println("Input (PIM):  In-memory BackendConfig model");
         System.out.println("Output (PSM): " + outputModel);
-        System.out.println("ETL Script:   " + ETL_SCRIPT_PATH);
+        System.out.println("ETL Script:   " + ETL_SCRIPT_RESOURCE);
         System.out.println("===========================================\n");
         
         // Initialize EMF packages
@@ -55,10 +58,10 @@ public class ETLTransformationEngine {
         EtlModule etlModule = new EtlModule();
         
         try {
-            // Parse ETL script
-            File etlFile = new File(ETL_SCRIPT_PATH);
-            if (!etlFile.exists()) {
-                throw new IllegalStateException("ETL script not found: " + ETL_SCRIPT_PATH);
+            // Load ETL script from classpath (works in JAR)
+            File etlFile = loadResourceAsFile(ETL_SCRIPT_RESOURCE);
+            if (etlFile == null || !etlFile.exists()) {
+                throw new IllegalStateException("ETL script not found in classpath: " + ETL_SCRIPT_RESOURCE);
             }
             
             etlModule.parse(etlFile);
@@ -109,7 +112,7 @@ public class ETLTransformationEngine {
         System.out.println("===========================================");
         System.out.println("Input (PIM):  " + inputModel);
         System.out.println("Output (PSM): " + outputModel);
-        System.out.println("ETL Script:   " + ETL_SCRIPT_PATH);
+        System.out.println("ETL Script:   " + ETL_SCRIPT_RESOURCE);
         System.out.println("===========================================\n");
         
         // Initialize EMF packages
@@ -119,10 +122,10 @@ public class ETLTransformationEngine {
         EtlModule etlModule = new EtlModule();
         
         try {
-            // Parse ETL script
-            File etlFile = new File(ETL_SCRIPT_PATH);
-            if (!etlFile.exists()) {
-                throw new IllegalStateException("ETL script not found: " + ETL_SCRIPT_PATH);
+            // Load ETL script from classpath (works in JAR)
+            File etlFile = loadResourceAsFile(ETL_SCRIPT_RESOURCE);
+            if (etlFile == null || !etlFile.exists()) {
+                throw new IllegalStateException("ETL script not found in classpath: " + ETL_SCRIPT_RESOURCE);
             }
             
             etlModule.parse(etlFile);
@@ -234,6 +237,34 @@ public class ETLTransformationEngine {
         
         System.out.println("✓ Target model initialized (Context)");
         return model;
+    }
+    
+    /**
+     * Load a resource from classpath and copy it to a temporary file.
+     * This allows resources packaged in JARs to be used with File-based APIs.
+     * 
+     * @param resourcePath Path to resource (e.g., "/etl/script.etl")
+     * @return Temporary File containing the resource content
+     * @throws Exception if resource not found or copy fails
+     */
+    private File loadResourceAsFile(String resourcePath) throws Exception {
+        InputStream resourceStream = getClass().getResourceAsStream(resourcePath);
+        if (resourceStream == null) {
+            throw new IllegalStateException("Resource not found in classpath: " + resourcePath);
+        }
+        
+        // Create temp file with appropriate extension
+        String extension = resourcePath.substring(resourcePath.lastIndexOf('.'));
+        Path tempFile = Files.createTempFile("mde-etl-", extension);
+        
+        // Copy resource to temp file
+        Files.copy(resourceStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+        resourceStream.close();
+        
+        // Delete on exit
+        tempFile.toFile().deleteOnExit();
+        
+        return tempFile.toFile();
     }
     
     /**

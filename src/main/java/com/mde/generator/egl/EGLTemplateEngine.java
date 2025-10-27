@@ -3,9 +3,11 @@ package com.mde.generator.egl;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +32,7 @@ import com.mde.generator.Context.ProjectContext;
  */
 public class EGLTemplateEngine {
 
-    private static final String TEMPLATES_BASE_PATH = "templates/";
+    private static final String TEMPLATES_BASE_RESOURCE = "/templates/";
     private Path outputDirectory;
     private EmfModel contextModel;
     
@@ -359,10 +361,10 @@ public class EGLTemplateEngine {
         EglFileGeneratingTemplateFactory factory = new EglFileGeneratingTemplateFactory();
         EglTemplateFactoryModuleAdapter module = new EglTemplateFactoryModuleAdapter(factory);
         
-        // Parse template
-        File templateFile = new File(TEMPLATES_BASE_PATH + templatePath);
-        if (!templateFile.exists()) {
-            throw new IllegalStateException("Template not found: " + templatePath);
+        // Load template from classpath
+        File templateFile = loadTemplateAsFile(templatePath);
+        if (templateFile == null || !templateFile.exists()) {
+            throw new IllegalStateException("Template not found in classpath: " + templatePath);
         }
         
         module.parse(templateFile);
@@ -386,5 +388,34 @@ public class EGLTemplateEngine {
         
         // Note: Don't dispose model repository here as contextModel is shared across all templates
         // The contextModel will be disposed once in generateProject() after all templates are processed
+    }
+
+    
+    /**
+     * Load a template from classpath and copy it to a temporary file.
+     * This allows templates packaged in JARs to be used with File-based APIs.
+     * 
+     * @param templatePath Path to template relative to TEMPLATES_BASE_RESOURCE
+     * @return Temporary File containing the template content
+     * @throws Exception if template not found or copy fails
+     */
+    private File loadTemplateAsFile(String templatePath) throws Exception {
+        String resourcePath = TEMPLATES_BASE_RESOURCE + templatePath;
+        InputStream resourceStream = getClass().getResourceAsStream(resourcePath);
+        if (resourceStream == null) {
+            throw new IllegalStateException("Template not found in classpath: " + resourcePath);
+        }
+        
+        // Create temp file with .egl extension
+        Path tempFile = Files.createTempFile("mde-template-", ".egl");
+        
+        // Copy resource to temp file
+        Files.copy(resourceStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+        resourceStream.close();
+        
+        // Delete on exit
+        tempFile.toFile().deleteOnExit();
+        
+        return tempFile.toFile();
     }
 }

@@ -1,32 +1,24 @@
 package com.mde.generator;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.mde.cli.MdeGenCli;
 
 /**
  * Command-line launcher for the MDE Code Generator
  * 
+ * This is a simple wrapper that delegates to the new Picocli-based CLI.
+ * 
  * Usage:
- *   java -cp target/classes com.mde.generator.Main <input-yaml> <output-directory>
+ *   java -cp target/classes com.mde.generator.Main generate <input-yaml> [OPTIONS]
+ *   java -cp target/classes com.mde.generator.Main validate <input-yaml> [OPTIONS]
+ *   java -cp target/classes com.mde.generator.Main --help
  * 
  * Examples:
- *   java -cp target/classes com.mde.generator.Main examples/blog-example.yaml output/blog
+ *   java -cp target/classes com.mde.generator.Main generate examples/blog-example.yaml -o output/blog
+ *   java -cp target/classes com.mde.generator.Main validate examples/healthcare-system.yaml
  */
 public class Main {
-    public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            System.err.println("Usage: Main <input-yaml> <output-directory>");
-            System.err.println("");
-            System.err.println("Examples:");
-            System.err.println("  Main examples/blog-example.yaml output/blog-project");
-            System.err.println("  Main examples/minimal-example.yaml output/minimal-project");
-            System.exit(1);
-        }
-        
-        Path inputYaml = Paths.get(args[0]);
-        Path outputDir = Paths.get(args[1]);
-        
-        CodeGenerator generator = new CodeGenerator();
-        generator.generateProject(inputYaml, outputDir);
+    public static void main(String[] args) {
+        // Delegate to the new Picocli CLI
+        MdeGenCli.main(args);
     }
 }
