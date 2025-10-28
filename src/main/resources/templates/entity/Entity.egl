@@ -2,9 +2,14 @@
 package [%= entity.packageName %];
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -39,14 +44,19 @@ import java.util.Set;
 @Entity
 @Table(name = "[%= entity.tableName %]")
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class [%= entity.className %] implements Serializable {
 
     [* Generate Fields *]
     [% for (field in entity.fields) { %]
     [% if (field.isPrimaryKey) { %]
+    @ToString.Include
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     [% } %]
@@ -78,6 +88,7 @@ public class [%= entity.className %] implements Serializable {
             jpaAnnotation = relType; // fallback
         }
     %]
+    @JsonIgnore
     @[%= jpaAnnotation %][% if (relation.fetchType.isDefined()) { %](fetch = FetchType.[%= relation.fetchType %][% if (not relation.isOwner and relation.mappedBy.isDefined()) { %], mappedBy = "[%= relation.mappedBy %]"[% } %])[% } else if (not relation.isOwner and relation.mappedBy.isDefined()) { %](mappedBy = "[%= relation.mappedBy %]")[% } %]
     [% if (relation.isOwner and relation.joinColumnName.isDefined()) { %]
     @JoinColumn(name = "[%= relation.joinColumnName %]")

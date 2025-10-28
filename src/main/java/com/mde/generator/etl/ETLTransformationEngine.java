@@ -43,14 +43,6 @@ public class ETLTransformationEngine {
      * @throws Exception if transformation fails
      */
     public Path executeTransformation(BackendConfig backendConfig, Path outputModel) throws Exception {
-        System.out.println("===========================================");
-        System.out.println("ETL TRANSFORMATION ENGINE");
-        System.out.println("===========================================");
-        System.out.println("Input (PIM):  In-memory BackendConfig model");
-        System.out.println("Output (PSM): " + outputModel);
-        System.out.println("ETL Script:   " + ETL_SCRIPT_RESOURCE);
-        System.out.println("===========================================\n");
-        
         // Initialize EMF packages
         initializeEMF();
         
@@ -75,22 +67,15 @@ public class ETLTransformationEngine {
             etlModule.getContext().getModelRepository().addModel(targetModel);
             
             // Execute transformation
-            System.out.println("Executing ETL transformation...\n");
             etlModule.execute();
             
             // Save target model
             targetModel.store();
             
-            System.out.println("\n===========================================");
-            System.out.println("ETL TRANSFORMATION COMPLETE!");
-            System.out.println("Output saved to: " + outputModel);
-            System.out.println("===========================================\n");
-            
             return outputModel;
             
         } catch (Exception e) {
             System.err.println("ETL Transformation failed: " + e.getMessage());
-            e.printStackTrace();
             throw e;
         } finally {
             // Cleanup
@@ -173,8 +158,6 @@ public class ETLTransformationEngine {
         // Register XMI resource factory
         Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap()
             .put("xmi", new XMIResourceFactoryImpl());
-            
-        System.out.println("✓ EMF packages registered");
     }
     
     /**
@@ -203,7 +186,6 @@ public class ETLTransformationEngine {
         model.setStoredOnDisposal(false);  // Don't save when disposed
         // Don't call load() since the resource is already populated
         
-        System.out.println("✓ Source model loaded (BackendConfig - in-memory)");
         return model;
     }
     
@@ -219,7 +201,6 @@ public class ETLTransformationEngine {
         model.setStoredOnDisposal(false);
         model.load();
         
-        System.out.println("✓ Source model loaded (BackendConfig)");
         return model;
     }
     
@@ -235,7 +216,6 @@ public class ETLTransformationEngine {
         model.setStoredOnDisposal(false);  // We'll store it manually
         model.load();
         
-        System.out.println("✓ Target model initialized (Context)");
         return model;
     }
     

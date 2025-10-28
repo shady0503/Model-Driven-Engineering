@@ -70,10 +70,10 @@
     <eLiterals name="DateTime" value="8" literal="DATETIME"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="RelationType">
-    <eLiterals name="oneToMany" literal="ONE_TO_MANY"/>
-    <eLiterals name="manyToOne" value="1" literal="MANY_TO_ONE"/>
-    <eLiterals name="oneToOne" value="2" literal="ONE_TO_ONE"/>
-    <eLiterals name="manyToMany" value="3" literal="MANY_TO_MANY"/>
+    <eLiterals name="ONE_TO_MANY" literal="ONE_TO_MANY"/>
+    <eLiterals name="MANY_TO_ONE" value="1" literal="MANY_TO_ONE"/>
+    <eLiterals name="ONE_TO_ONE" value="2" literal="ONE_TO_ONE"/>
+    <eLiterals name="MANY_TO_MANY" value="3" literal="MANY_TO_MANY"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Relation">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="targetTable" lowerBound="1"

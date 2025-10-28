@@ -9,8 +9,11 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FlexmiModelLoader {
@@ -65,14 +68,24 @@ public class FlexmiModelLoader {
         }
 
         try {
+            // Preprocess YAML file to add namespace URI if missing
+            File processedFile = preprocessYamlFile(file);
+            
             // Convert file path to EMF URI
-            URI uri = URI.createFileURI(file.getAbsolutePath());
+            URI uri = URI.createFileURI(processedFile.getAbsolutePath());
 
             // Load the resource
             Resource resource = loadResource(uri);
 
             // Extract and return root object
-            return extractRootObject(resource);
+            BackendConfig config = extractRootObject(resource);
+            
+            // Clean up temporary file if one was created
+            if (!processedFile.equals(file)) {
+                processedFile.delete();
+            }
+            
+            return config;
 
         } catch (LoadException e) {
             // Re-throw LoadException as-is
@@ -159,6 +172,63 @@ public class FlexmiModelLoader {
         } catch (IOException e) {
             throw new LoadException("IO error while loading resource", e);
         }
+    }
+
+    /**
+     * Preprocesses a YAML file to ensure it has the required Flexmi namespace URI.
+     * If the file already contains the namespace declaration, returns the original file.
+     * Otherwise, creates a temporary file with the namespace added.
+     *
+     * @param originalFile The original YAML file
+     * @return The original file if namespace exists, or a temporary file with namespace added
+     * @throws IOException if file operations fail
+     */
+    private File preprocessYamlFile(File originalFile) throws IOException {
+        // Required namespace URI for Flexmi
+        final String NAMESPACE_URI = "?nsuri: http://www.ModelDrivenEngineering.com/model/v1";
+        
+        // Read all lines from the file
+        List<String> lines = Files.readAllLines(originalFile.toPath(), StandardCharsets.UTF_8);
+        
+        // Check if namespace URI already exists (in first few lines, typically line 2-3)
+        boolean hasNamespace = false;
+        for (int i = 0; i < Math.min(5, lines.size()); i++) {
+            String line = lines.get(i).trim();
+            if (line.startsWith("?nsuri:") || line.contains("http://www.ModelDrivenEngineering.com/model/v1")) {
+                hasNamespace = true;
+                break;
+            }
+        }
+        
+        // If namespace already exists, return original file
+        if (hasNamespace) {
+            return originalFile;
+        }
+        
+        // Create a temporary file with namespace added
+        File tempFile = File.createTempFile("mde-yaml-", ".yaml");
+        tempFile.deleteOnExit(); // Ensure cleanup on JVM exit
+        
+        // Find the best position to insert namespace (after comments, before BackendConfig)
+        int insertPosition = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            // Skip empty lines and comments at the beginning
+            if (line.isEmpty() || line.startsWith("#")) {
+                insertPosition = i + 1;
+            } else {
+                // Found first non-comment, non-empty line
+                break;
+            }
+        }
+        
+        // Insert namespace at the determined position
+        lines.add(insertPosition, NAMESPACE_URI);
+        
+        // Write to temporary file
+        Files.write(tempFile.toPath(), lines, StandardCharsets.UTF_8);
+        
+        return tempFile;
     }
 
     /**

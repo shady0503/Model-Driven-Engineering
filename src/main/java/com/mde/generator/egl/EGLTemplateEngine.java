@@ -54,13 +54,6 @@ public class EGLTemplateEngine {
      * @throws Exception if generation fails
      */
     public Path generateProject(Path contextModelPath) throws Exception {
-        System.out.println("===========================================");
-        System.out.println("EGL TEMPLATE ENGINE");
-        System.out.println("===========================================");
-        System.out.println("Context Model: " + contextModelPath);
-        System.out.println("Output Dir:    " + outputDirectory);
-        System.out.println("===========================================\n");
-        
         // Load Context model
         loadContextModel(contextModelPath);
         
@@ -69,10 +62,6 @@ public class EGLTemplateEngine {
         if (project == null) {
             throw new IllegalStateException("No ProjectContext found in model");
         }
-        
-        System.out.println("Project: " + project.getArtifactId());
-        System.out.println("Entities: " + project.getEntities().size());
-        System.out.println();
         
         // Create directory structure
         createDirectoryStructure(project);
@@ -89,11 +78,6 @@ public class EGLTemplateEngine {
         
         // Cleanup
         contextModel.dispose();
-        
-        System.out.println("\n===========================================");
-        System.out.println("CODE GENERATION COMPLETE!");
-        System.out.println("Generated project at: " + outputDirectory);
-        System.out.println("===========================================\n");
         
         return outputDirectory;
     }
@@ -119,7 +103,7 @@ public class EGLTemplateEngine {
         contextModel.setStoredOnDisposal(false);
         contextModel.load();
         
-        System.out.println("✓ Context model loaded");
+
     }
     
     /**
@@ -135,7 +119,7 @@ public class EGLTemplateEngine {
      * Create directory structure for generated project
      */
     private void createDirectoryStructure(ProjectContext project) throws IOException {
-        System.out.println("Creating directory structure...");
+        // Directory creation
         
         // Base paths
         Path srcMain = outputDirectory.resolve("src/main");
@@ -154,14 +138,14 @@ public class EGLTemplateEngine {
         Files.createDirectories(srcMain.resolve("resources"));
         Files.createDirectories(srcTest.resolve("java").resolve(packagePath));
         
-        System.out.println("✓ Directory structure created");
+
     }
     
     /**
      * Generate project files (pom.xml, Application.java)
      */
     private void generateProjectFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating project files...");
+
         
         // pom.xml
         generateFromTemplate(
@@ -182,15 +166,15 @@ public class EGLTemplateEngine {
             Map.of("project", project)
         );
         
-        System.out.println("  ✓ pom.xml");
-        System.out.println("  ✓ Application.java");
+
+
     }
     
     /**
      * Generate entity files
      */
     private void generateEntityFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating entity files...");
+
         
         String packagePath = project.getPackageName().replace('.', '/');
         Path entityDir = outputDirectory.resolve("src/main/java")
@@ -206,7 +190,7 @@ public class EGLTemplateEngine {
                 Map.of("project", project, "entity", entity)
             );
             
-            System.out.println("  ✓ " + entity.getClassName() + ".java");
+
         }
     }
     
@@ -214,7 +198,7 @@ public class EGLTemplateEngine {
      * Generate repository files
      */
     private void generateRepositoryFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating repository files...");
+
         
         String packagePath = project.getPackageName().replace('.', '/');
         Path repoDir = outputDirectory.resolve("src/main/java")
@@ -231,7 +215,7 @@ public class EGLTemplateEngine {
                 Map.of("project", project, "entity", entity)
             );
             
-            System.out.println("  ✓ " + repositoryName + ".java");
+
         }
     }
     
@@ -239,7 +223,7 @@ public class EGLTemplateEngine {
      * Generate service files
      */
     private void generateServiceFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating service files...");
+
         
         String packagePath = project.getPackageName().replace('.', '/');
         Path serviceDir = outputDirectory.resolve("src/main/java")
@@ -256,7 +240,7 @@ public class EGLTemplateEngine {
                 Map.of("project", project, "entity", entity)
             );
             
-            System.out.println("  ✓ " + serviceName + ".java");
+
         }
     }
     
@@ -264,7 +248,7 @@ public class EGLTemplateEngine {
      * Generate controller files
      */
     private void generateControllerFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating controller files...");
+
         
         String packagePath = project.getPackageName().replace('.', '/');
         Path controllerDir = outputDirectory.resolve("src/main/java")
@@ -281,7 +265,7 @@ public class EGLTemplateEngine {
                 Map.of("project", project, "entity", entity)
             );
             
-            System.out.println("  ✓ " + controllerName + ".java");
+
         }
     }
     
@@ -289,7 +273,7 @@ public class EGLTemplateEngine {
      * Generate configuration files (application.properties, application.yml)
      */
     private void generateConfigurationFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating configuration files...");
+
         
         Path resourcesDir = outputDirectory.resolve("src/main/resources");
         Path appPropsFile = resourcesDir.resolve("application.properties");
@@ -300,7 +284,7 @@ public class EGLTemplateEngine {
             Map.of("project", project)
         );
         
-        System.out.println("  ✓ application.properties");
+
         
         // Generate JPA Auditing Config
         String packagePath = project.getPackageName().replace('.', '/');
@@ -315,31 +299,48 @@ public class EGLTemplateEngine {
             Map.of("project", project)
         );
         
-        System.out.println("  ✓ JpaAuditingConfig.java");
+
     }
     
     /**
-     * Generate Docker files (docker-compose.yml)
+     * Generate Docker files (docker-compose.yml and Dockerfile)
      */
     private void generateDockerFiles(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating Docker files...");
+
         
-        Path dockerFile = outputDirectory.resolve("docker-compose.yml");
-        
+        // Generate docker-compose.yml
+        Path dockerComposeFile = outputDirectory.resolve("docker-compose.yml");
         generateFromTemplate(
             "docker/docker-compose.egl",
+            dockerComposeFile,
+            Map.of("project", project)
+        );
+
+        
+        // Generate Dockerfile
+        Path dockerFile = outputDirectory.resolve("Dockerfile");
+        generateFromTemplate(
+            "docker/Dockerfile.egl",
             dockerFile,
             Map.of("project", project)
         );
+
         
-        System.out.println("  ✓ docker-compose.yml");
+        // Generate .dockerignore
+        Path dockerIgnoreFile = outputDirectory.resolve(".dockerignore");
+        generateFromTemplate(
+            "docker/dockerignore.egl",
+            dockerIgnoreFile,
+            Map.of("project", project)
+        );
+
     }
     
     /**
      * Generate README.md
      */
     private void generateReadme(ProjectContext project) throws Exception {
-        System.out.println("\nGenerating documentation...");
+
         
         Path readmeFile = outputDirectory.resolve("README.md");
         
@@ -349,7 +350,7 @@ public class EGLTemplateEngine {
             Map.of("project", project)
         );
         
-        System.out.println("  ✓ README.md");
+
     }
     
     /**

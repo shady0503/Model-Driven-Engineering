@@ -23,6 +23,13 @@ import com.mde.ModelDrivenEngineering.BackendConfig;
  */
 public class CodeGenerator {
 
+    // ANSI color codes
+    private static final String CYAN = "\u001B[36m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String RESET = "\u001B[0m";
+    private static final String BOLD = "\u001B[1m";
+    
     private final FlexmiModelLoader modelLoader;
     private final ETLTransformationEngine etlEngine;
     private final Path tempDirectory;
@@ -51,14 +58,9 @@ public class CodeGenerator {
      * @throws Exception if generation fails
      */
     public Path generateProject(Path yamlFile, Path outputDirectory) throws Exception {
-        System.out.println("\n");
-        System.out.println("╔════════════════════════════════════════════════════════╗");
-        System.out.println("║     MODEL-DRIVEN BACKEND CODE GENERATOR               ║");
-        System.out.println("║     Eclipse Epsilon Transformation Pipeline           ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println();
-        System.out.println("Input YAML:     " + yamlFile);
-        System.out.println("Output Project: " + outputDirectory);
+        System.out.println("\n" + GREEN + ConsoleSymbols.SUCCESS + " MDE Backend Generator" + RESET);
+        System.out.println(CYAN + "Input:  " + RESET + yamlFile.getFileName());
+        System.out.println(CYAN + "Output: " + RESET + outputDirectory.toAbsolutePath());
         System.out.println();
         
         // Validate input
@@ -71,56 +73,32 @@ public class CodeGenerator {
         
         try {
             // PHASE 1: Parse YAML → BackendConfig model (T2M)
-            System.out.println("┌─────────────────────────────────────────────────────┐");
-            System.out.println("│ PHASE 1: Text-to-Model Transformation (T2M/Flexmi) │");
-            System.out.println("└─────────────────────────────────────────────────────┘");
+            System.out.print(YELLOW + "[1/3]" + RESET + " Parsing YAML... ");
             BackendConfig backendConfig = modelLoader.load(yamlFile);
-            System.out.println(ConsoleSymbols.success("YAML parsed successfully"));
-            System.out.println("  Project: " + backendConfig.getProject().getName());
-            System.out.println("  Tables:  " + backendConfig.getDatabase().getTables().size());
-            System.out.println();
+            System.out.println(GREEN + ConsoleSymbols.SUCCESS + " " + backendConfig.getProject().getName() + " (" + backendConfig.getDatabase().getTables().size() + " entities)" + RESET);
             
             // PHASE 2: BackendConfig → Context model (M2M)
-            System.out.println("┌─────────────────────────────────────────────────────┐");
-            System.out.println("│ PHASE 2: Model-to-Model Transformation (M2M/ETL)   │");
-            System.out.println("└─────────────────────────────────────────────────────┘");
+            System.out.print(YELLOW + "[2/3]" + RESET + " Transforming model... ");
             Path contextModel = tempDirectory.resolve("context.xmi");
             etlEngine.executeTransformation(backendConfig, contextModel);
-            System.out.println();
+            System.out.println(GREEN + ConsoleSymbols.SUCCESS + RESET);
             
             // PHASE 3: Context model → Java code (M2T)
-            System.out.println("┌─────────────────────────────────────────────────────┐");
-            System.out.println("│ PHASE 3: Model-to-Text Transformation (M2T/EGL)    │");
-            System.out.println("└─────────────────────────────────────────────────────┘");
+            System.out.print(YELLOW + "[3/3]" + RESET + " Generating code... ");
             EGLTemplateEngine eglEngine = new EGLTemplateEngine(outputDirectory);
             eglEngine.generateProject(contextModel);
-            System.out.println();
+            System.out.println(GREEN + ConsoleSymbols.SUCCESS + RESET);
             
-            // Success!
-            System.out.println("╔════════════════════════════════════════════════════════╗");
-            System.out.println("║            " + ConsoleSymbols.SUCCESS + " GENERATION SUCCESSFUL!                   ║");
-            System.out.println("╚════════════════════════════════════════════════════════╝");
-            System.out.println();
-            System.out.println("Generated project location:");
-            System.out.println("  " + outputDirectory.toAbsolutePath());
-            System.out.println();
-            System.out.println("Next steps:");
-            System.out.println("  1. cd " + outputDirectory.toAbsolutePath());
-            System.out.println("  2. mvn clean install");
-            System.out.println("  3. docker-compose up -d");
-            System.out.println("  4. mvn spring-boot:run");
-            System.out.println();
+            System.out.println("\n" + GREEN + BOLD + ConsoleSymbols.SUCCESS + " Project generated successfully!" + RESET);
+            System.out.println("\n" + CYAN + "Quick start:" + RESET);
+            System.out.println("  cd " + outputDirectory.toAbsolutePath());
+            System.out.println("  docker compose up -d --build");
             
             return outputDirectory;
             
         } catch (Exception e) {
-            System.err.println("\n❌ Generation failed: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("\n" + ConsoleSymbols.ERROR + " Generation failed: " + e.getMessage());
             throw e;
-        } finally {
-            // Cleanup temp files (optional - keep for debugging)
-            // Files.deleteIfExists(tempDirectory);
-            System.out.println("Temporary files kept for debugging: " + tempDirectory);
         }
     }
     
