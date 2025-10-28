@@ -26,7 +26,7 @@ public enum RelationType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	ONE_TO_MANY(0, "oneToMany", "ONE_TO_MANY"),
+	ONE_TO_MANY(0, "ONE_TO_MANY", "ONE_TO_MANY"),
 
 	/**
 	 * The '<em><b>Many To One</b></em>' literal object.
@@ -36,7 +36,7 @@ public enum RelationType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	MANY_TO_ONE(1, "manyToOne", "MANY_TO_ONE"),
+	MANY_TO_ONE(1, "MANY_TO_ONE", "MANY_TO_ONE"),
 
 	/**
 	 * The '<em><b>One To One</b></em>' literal object.
@@ -46,7 +46,7 @@ public enum RelationType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	ONE_TO_ONE(2, "oneToOne", "ONE_TO_ONE"),
+	ONE_TO_ONE(2, "ONE_TO_ONE", "ONE_TO_ONE"),
 
 	/**
 	 * The '<em><b>Many To Many</b></em>' literal object.
@@ -56,14 +56,14 @@ public enum RelationType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	MANY_TO_MANY(3, "manyToMany", "MANY_TO_MANY");
+	MANY_TO_MANY(3, "MANY_TO_MANY", "MANY_TO_MANY");
 
 	/**
 	 * The '<em><b>One To Many</b></em>' literal value.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #ONE_TO_MANY
-	 * @model name="oneToMany" literal="ONE_TO_MANY"
+	 * @model name="ONE_TO_MANY" literal="ONE_TO_MANY"
 	 * @generated
 	 * @ordered
 	 */
@@ -74,7 +74,7 @@ public enum RelationType implements Enumerator {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #MANY_TO_ONE
-	 * @model name="manyToOne" literal="MANY_TO_ONE"
+	 * @model name="MANY_TO_ONE" literal="MANY_TO_ONE"
 	 * @generated
 	 * @ordered
 	 */
@@ -85,7 +85,7 @@ public enum RelationType implements Enumerator {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #ONE_TO_ONE
-	 * @model name="oneToOne" literal="ONE_TO_ONE"
+	 * @model name="ONE_TO_ONE" literal="ONE_TO_ONE"
 	 * @generated
 	 * @ordered
 	 */
@@ -96,7 +96,7 @@ public enum RelationType implements Enumerator {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #MANY_TO_MANY
-	 * @model name="manyToMany" literal="MANY_TO_MANY"
+	 * @model name="MANY_TO_MANY" literal="MANY_TO_MANY"
 	 * @generated
 	 * @ordered
 	 */

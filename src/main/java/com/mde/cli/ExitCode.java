@@ -10,6 +10,9 @@ public class ExitCode {
     /** File error - input file not found or not readable */
     public static final int FILE_ERROR = 1;
     
+    /** Input error - invalid input or auto-detection failed */
+    public static final int INPUT_ERROR = 1;
+    
     /** Validation error - model validation failed */
     public static final int VALIDATION_ERROR = 2;
     

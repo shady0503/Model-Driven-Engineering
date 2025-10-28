@@ -1,0 +1,670 @@
+# E-Commerce Platform
+# Comprehensive test: ONE_TO_ONE, MANY_TO_MANY, all data types, cascade behaviors
+# Tests: User profiles, product catalogs, orders, reviews, cart functionality
+
+BackendConfig:
+  project:
+    Project:
+      name: "ECommerceAPI"
+      groupId: "com.ecommerce.platform"
+      language: JAVA
+      framework: SPRING_BOOT
+      javaVersion: 17
+      springBootVersion: "3.2.0"
+  database:
+    Database:
+      type: POSTGRESQL
+      name: "ecommerce_db"
+      host: "localhost"
+      port: 5432
+      tables:
+        # Users table - base entity
+        - Table:
+            name: "users"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "username"
+                  type: STRING
+                  length: 50
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "email"
+                  type: STRING
+                  length: 100
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "password_hash"
+                  type: STRING
+                  length: 255
+                  nullable: false
+              - Column:
+                  name: "is_active"
+                  type: BOOLEAN
+              - Column:
+                  name: "is_verified"
+                  type: BOOLEAN
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+              - Column:
+                  name: "updated_at"
+                  type: DATETIME
+        
+        # User Profile - ONE_TO_ONE relationship with users
+        - Table:
+            name: "user_profiles"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  unique: true
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: ONE_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "first_name"
+                  type: STRING
+                  length: 50
+              - Column:
+                  name: "last_name"
+                  type: STRING
+                  length: 50
+              - Column:
+                  name: "phone"
+                  type: STRING
+                  length: 20
+              - Column:
+                  name: "date_of_birth"
+                  type: DATE
+              - Column:
+                  name: "avatar_url"
+                  type: STRING
+                  length: 255
+              - Column:
+                  name: "bio"
+                  type: TEXT
+        
+        # Addresses - multiple addresses per user
+        - Table:
+            name: "addresses"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "address_type"
+                  type: STRING
+                  length: 20
+                  nullable: false
+              - Column:
+                  name: "street_address"
+                  type: STRING
+                  length: 200
+                  nullable: false
+              - Column:
+                  name: "city"
+                  type: STRING
+                  length: 100
+                  nullable: false
+              - Column:
+                  name: "state_province"
+                  type: STRING
+                  length: 100
+              - Column:
+                  name: "postal_code"
+                  type: STRING
+                  length: 20
+                  nullable: false
+              - Column:
+                  name: "country"
+                  type: STRING
+                  length: 100
+                  nullable: false
+              - Column:
+                  name: "is_default"
+                  type: BOOLEAN
+        
+        # Categories - hierarchical product categories
+        - Table:
+            name: "categories"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "name"
+                  type: STRING
+                  length: 100
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "description"
+                  type: TEXT
+              - Column:
+                  name: "parent_category_id"
+                  type: INTEGER
+                  relation:
+                    Relation:
+                      targetTable: "categories"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: SET_NULL
+              - Column:
+                  name: "display_order"
+                  type: INTEGER
+              - Column:
+                  name: "is_active"
+                  type: BOOLEAN
+        
+        # Products
+        - Table:
+            name: "products"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "sku"
+                  type: STRING
+                  length: 50
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "name"
+                  type: STRING
+                  length: 200
+                  nullable: false
+              - Column:
+                  name: "description"
+                  type: TEXT
+              - Column:
+                  name: "price"
+                  type: DECIMAL
+                  nullable: false
+              - Column:
+                  name: "compare_at_price"
+                  type: DECIMAL
+              - Column:
+                  name: "cost"
+                  type: DECIMAL
+              - Column:
+                  name: "stock_quantity"
+                  type: LONG
+                  nullable: false
+              - Column:
+                  name: "weight_kg"
+                  type: DECIMAL
+              - Column:
+                  name: "is_active"
+                  type: BOOLEAN
+              - Column:
+                  name: "is_featured"
+                  type: BOOLEAN
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+              - Column:
+                  name: "updated_at"
+                  type: DATETIME
+        
+        # Product Categories - MANY_TO_MANY junction table
+        - Table:
+            name: "product_categories"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "product_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "products"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "category_id"
+                  type: INTEGER
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "categories"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+        
+        # Product Images
+        - Table:
+            name: "product_images"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "product_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "products"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "url"
+                  type: STRING
+                  length: 255
+                  nullable: false
+              - Column:
+                  name: "alt_text"
+                  type: STRING
+                  length: 200
+              - Column:
+                  name: "display_order"
+                  type: INTEGER
+              - Column:
+                  name: "is_primary"
+                  type: BOOLEAN
+        
+        # Orders
+        - Table:
+            name: "orders"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "order_number"
+                  type: STRING
+                  length: 50
+                  unique: true
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: RESTRICT
+              - Column:
+                  name: "status"
+                  type: STRING
+                  length: 20
+                  nullable: false
+              - Column:
+                  name: "subtotal"
+                  type: DECIMAL
+                  nullable: false
+              - Column:
+                  name: "tax_amount"
+                  type: DECIMAL
+              - Column:
+                  name: "shipping_amount"
+                  type: DECIMAL
+              - Column:
+                  name: "discount_amount"
+                  type: DECIMAL
+              - Column:
+                  name: "total_amount"
+                  type: DECIMAL
+                  nullable: false
+              - Column:
+                  name: "shipping_address_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "addresses"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: RESTRICT
+              - Column:
+                  name: "billing_address_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "addresses"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: RESTRICT
+              - Column:
+                  name: "notes"
+                  type: TEXT
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+              - Column:
+                  name: "updated_at"
+                  type: DATETIME
+        
+        # Order Items
+        - Table:
+            name: "order_items"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "order_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "orders"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "product_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "products"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: RESTRICT
+              - Column:
+                  name: "quantity"
+                  type: INTEGER
+                  nullable: false
+              - Column:
+                  name: "unit_price"
+                  type: DECIMAL
+                  nullable: false
+              - Column:
+                  name: "subtotal"
+                  type: DECIMAL
+                  nullable: false
+        
+        # Shopping Cart
+        - Table:
+            name: "cart_items"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "product_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "products"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "quantity"
+                  type: INTEGER
+                  nullable: false
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+        
+        # Product Reviews
+        - Table:
+            name: "reviews"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "product_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "products"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "rating"
+                  type: INTEGER
+                  nullable: false
+              - Column:
+                  name: "title"
+                  type: STRING
+                  length: 200
+              - Column:
+                  name: "comment"
+                  type: TEXT
+              - Column:
+                  name: "is_verified_purchase"
+                  type: BOOLEAN
+              - Column:
+                  name: "helpful_count"
+                  type: INTEGER
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+              - Column:
+                  name: "updated_at"
+                  type: DATETIME
+        
+        # Wishlist - MANY_TO_MANY relationship
+        - Table:
+            name: "wishlists"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "product_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "products"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "added_at"
+                  type: DATETIME
+                  nullable: false
+        
+        # Payment Methods
+        - Table:
+            name: "payment_methods"
+            columns:
+              - Column:
+                  name: "id"
+                  type: UUID
+                  primary: true
+                  nullable: false
+              - Column:
+                  name: "user_id"
+                  type: UUID
+                  nullable: false
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      onDelete: CASCADE
+              - Column:
+                  name: "payment_type"
+                  type: STRING
+                  length: 20
+                  nullable: false
+              - Column:
+                  name: "card_last_four"
+                  type: STRING
+                  length: 4
+              - Column:
+                  name: "card_brand"
+                  type: STRING
+                  length: 20
+              - Column:
+                  name: "expiry_month"
+                  type: INTEGER
+              - Column:
+                  name: "expiry_year"
+                  type: INTEGER
+              - Column:
+                  name: "is_default"
+                  type: BOOLEAN
+              - Column:
+                  name: "created_at"
+                  type: DATETIME
+                  nullable: false
+  api:
+    Api:
+      basePath: "/api/v1"
+      routes:
+        - Route:
+            entity: "users"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "user_profiles"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+        - Route:
+            entity: "products"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "categories"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "orders"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - LIST
+        - Route:
+            entity: "cart_items"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "reviews"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "wishlists"
+            methods:
+              - CREATE
+              - DELETE
+              - LIST
+        - Route:
+            entity: "addresses"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - LIST

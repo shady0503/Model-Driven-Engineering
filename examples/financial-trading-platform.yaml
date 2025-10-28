@@ -1,6 +1,5 @@
 # Financial Trading Platform
 # Demonstrates: DECIMAL types for financial data, complex audit trails, trading domain
-?nsuri: http://www.ModelDrivenEngineering.com/model/v1
 
 BackendConfig:
   project:

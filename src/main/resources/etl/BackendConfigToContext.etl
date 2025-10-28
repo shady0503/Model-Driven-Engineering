@@ -14,8 +14,7 @@
 // Pre-block: Declare source and target models
 pre {
     var sourceModel = Source!BackendConfig.all.first();
-    "Starting ETL transformation...".println();
-    "Source model contains " + Source!Table.all.size() + " tables".println();
+    // Silent transformation
 }
 
 /*****************************************************************************
@@ -63,7 +62,7 @@ rule BackendConfigToProjectContext
     // Link to entity contexts (will be created by Table rules)
     pc.entities = bc.database.tables.equivalent();
     
-    ("Created ProjectContext: " + pc.artifactId).println();
+    // ("Created ProjectContext: " + pc.artifactId).println();
 }
 
 /*****************************************************************************
@@ -106,7 +105,7 @@ rule TableToEntityContext
     // Note: repositoryName, serviceName, controllerName, apiPath 
     // are not in Context.ecore - they will be computed in templates
     
-    ("Created EntityContext: " + ec.className + " from table: " + t.name).println();
+    // ("Created EntityContext: " + ec.className + " from table: " + t.name).println();
 }
 
 /*****************************************************************************
@@ -134,7 +133,7 @@ rule ColumnToFieldContext
     
     // Note: Annotations are handled in templates, not stored in Context model
     
-    ("Created FieldContext: " + fc.fieldName + " (" + fc.javaType + ")").println();
+    // ("Created FieldContext: " + fc.fieldName + " (" + fc.javaType + ")").println();
 }
 
 /*****************************************************************************
@@ -195,7 +194,7 @@ rule ColumnWithRelationToRelationContext
         rc.fieldName = c.name.toCamelCase();
     }
     
-    ("Created RelationContext: " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
+    // ("Created RelationContext: " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
 }
 
 /*****************************************************************************
@@ -264,7 +263,7 @@ rule RelationToRelationContext
         rc.fieldName = targetTableName.singular();
     }
     
-    ("Created RelationContext: " + rc.relationType + " to " + rc.targetEntity).println();
+    // ("Created RelationContext: " + rc.relationType + " to " + rc.targetEntity).println();
 }
 
 /*****************************************************************************
@@ -286,13 +285,13 @@ post {
     var fieldCount = Target!FieldContext.all.size();
     var relationCount = Target!RelationContext.all.size();
     
-    "ETL Transformation Complete!".println();
-    "-------------------------------------".println();
-    ("Generated ProjectContext: " + projectContext.artifactId).println();
-    ("Generated " + entityCount + " EntityContext(s)").println();
-    ("Generated " + fieldCount + " FieldContext(s)").println();
-    ("Generated " + relationCount + " RelationContext(s)").println();
-    "-------------------------------------".println();
+    // "ETL Transformation Complete!".println();
+    // "-------------------------------------".println();
+    // ("Generated ProjectContext: " + projectContext.artifactId).println();
+    // ("Generated " + entityCount + " EntityContext(s)").println();
+    // ("Generated " + fieldCount + " FieldContext(s)").println();
+    // ("Generated " + relationCount + " RelationContext(s)").println();
+    // "-------------------------------------".println();
 }
 
 /*****************************************************************************
@@ -304,12 +303,20 @@ post {
 /**
  * Convert snake_case table name to PascalCase entity name
  * Example: blog_posts → BlogPost, user_profiles → UserProfile
+ * Enhanced to handle edge cases like consecutive underscores
  */
 operation String toEntityName() : String {
     var parts = self.split('_');
     var result = "";
     for (part in parts) {
-        result = result + part.firstToUpperCase();
+        // Skip empty parts from consecutive underscores
+        if (part.length() > 0) {
+            result = result + part.firstToUpperCase();
+        }
+    }
+    // If result is empty (e.g., input was "___"), return original
+    if (result.length() == 0) {
+        return self;
     }
     return result;
 }
@@ -317,14 +324,30 @@ operation String toEntityName() : String {
 /**
  * Convert snake_case column name to camelCase field name
  * Example: user_id → userId, created_at → createdAt
+ * Enhanced to handle edge cases like consecutive underscores
  */
 operation String toCamelCase() : String {
     var parts = self.split('_');
-    if (parts.size() == 1) {
-        return self;  // No conversion needed
+    
+    // Filter out empty parts from consecutive underscores
+    var validParts = Sequence{};
+    for (part in parts) {
+        if (part.length() > 0) {
+            validParts.add(part);
+        }
     }
-    var result = parts.first();
-    for (part in parts.subList(1, parts.size())) {
+    
+    // If no valid parts or only one part, return original
+    if (validParts.size() == 0) {
+        return self;
+    }
+    if (validParts.size() == 1) {
+        return validParts.first();
+    }
+    
+    // Build camelCase from valid parts
+    var result = validParts.first();
+    for (part in validParts.subList(1, validParts.size())) {
         result = result + part.firstToUpperCase();
     }
     return result;
@@ -465,7 +488,7 @@ operation getTargetTableName(targetTable : Any) : String {
  * This must run AFTER all entities are created but BEFORE inverse relationships
  */
 operation resolveRelationshipTargets() {
-    "Resolving relationship target entities...".println();
+    // "Resolving relationship target entities...".println();
     
     var allEntities = Target!EntityContext.all;
     
@@ -481,9 +504,9 @@ operation resolveRelationshipTargets() {
             if (targetEntity.isDefined()) {
                 // Update to class name
                 relation.targetEntity = targetEntity.className;
-                ("  Resolved: " + entity.className + "." + relation.fieldName + " → " + targetEntity.className).println();
+    // ("  Resolved: " + entity.className + "." + relation.fieldName + " → " + targetEntity.className).println();
             } else {
-                ("  WARNING: Could not find target entity for table: " + targetTableName).println();
+    // ("  WARNING: Could not find target entity for table: " + targetTableName).println();
             }
         }
     }
@@ -494,7 +517,7 @@ operation resolveRelationshipTargets() {
  * For each MANY_TO_ONE relationship, create the corresponding ONE_TO_MANY on the parent entity
  */
 operation createInverseRelationships() {
-    "Creating inverse relationships...".println();
+    // "Creating inverse relationships...".println();
     
     // Get all entities
     var allEntities = Target!EntityContext.all;
@@ -506,30 +529,52 @@ operation createInverseRelationships() {
             var targetEntity = allEntities.selectOne(e | e.className = relation.targetEntity);
             
             if (targetEntity.isDefined()) {
-                // Create inverse ONE_TO_MANY relationship
-                var inverseRelation = new Target!RelationContext;
-                inverseRelation.relationType = "ONE_TO_MANY";
-                inverseRelation.targetEntity = entity.className;
+                // Check if inverse relationship already exists
+                var existingInverse = targetEntity.relations.selectOne(r | 
+                    r.relationType = "ONE_TO_MANY" and 
+                    r.targetEntity = entity.className and
+                    r.mappedBy = relation.fieldName
+                );
                 
-                // Generate unique field name by combining table name with the FK field name
-                // Example: for UserFollows.follower → Users, create "followerUserFollows"
-                //          for UserFollows.following → Users, create "followingUserFollows"
-                var baseFieldName = entity.tableName.toCamelCase();
-                var uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase();
-                inverseRelation.fieldName = uniqueFieldName;
-                
-                inverseRelation.mappedBy = relation.fieldName; // field name in the owning side
-                inverseRelation.cascadeType = "ALL";
-                inverseRelation.fetchType = "LAZY";
-                inverseRelation.isOwner = false;
-                
-                // Add to target entity
-                targetEntity.relations.add(inverseRelation);
-                
-                // Update hasRelationships flag
-                targetEntity.hasRelationships = true;
-                
-                ("  Created inverse: " + targetEntity.className + ".@OneToMany(" + inverseRelation.fieldName + ") → " + entity.className).println();
+                // Only create if it doesn't exist
+                if (not existingInverse.isDefined()) {
+                    // Create inverse ONE_TO_MANY relationship
+                    var inverseRelation = new Target!RelationContext;
+                    inverseRelation.relationType = "ONE_TO_MANY";
+                    inverseRelation.targetEntity = entity.className;
+                    
+                    // Generate unique field name to avoid collisions
+                    // Strategy: Use plural form of source table + source field name for uniqueness
+                    // Example: for UserFollows.follower → Users, create "followerUserFollowsList"
+                    //          for UserFollows.following → Users, create "followingUserFollowsList"
+                    // This ensures uniqueness even when multiple FKs point to same table
+                    var baseFieldName = entity.tableName.toCamelCase();
+                    var uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase() + "List";
+                    
+                    // Additional check: ensure this name doesn't already exist in target entity
+                    var counter = 1;
+                    var finalFieldName = uniqueFieldName;
+                    while (targetEntity.relations.exists(r | r.fieldName = finalFieldName) or 
+                           targetEntity.fields.exists(f | f.fieldName = finalFieldName)) {
+                        finalFieldName = uniqueFieldName + counter.toString();
+                        counter = counter + 1;
+                    }
+                    
+                    inverseRelation.fieldName = finalFieldName;
+                    
+                    inverseRelation.mappedBy = relation.fieldName; // field name in the owning side
+                    inverseRelation.cascadeType = "ALL";
+                    inverseRelation.fetchType = "LAZY";
+                    inverseRelation.isOwner = false;
+                    
+                    // Add to target entity
+                    targetEntity.relations.add(inverseRelation);
+                    
+                    // Update hasRelationships flag
+                    targetEntity.hasRelationships = true;
+                    
+    // ("  Created inverse: " + targetEntity.className + ".@OneToMany(" + inverseRelation.fieldName + ") → " + entity.className).println();
+                }
             }
         }
     }
@@ -540,7 +585,7 @@ operation createInverseRelationships() {
  * These fields are managed by JPA auditing and don't need to be in the YAML
  */
 operation addAuditFieldsToAllEntities() {
-    "Adding automatic audit fields to all entities...".println();
+    // "Adding automatic audit fields to all entities...".println();
     
     var allEntities = Target!EntityContext.all;
     
@@ -559,7 +604,7 @@ operation addAuditFieldsToAllEntities() {
             createdAtField.isPrimaryKey = false;
             
             entity.fields.add(createdAtField);
-            ("  Added createdAt to " + entity.className).println();
+    // ("  Added createdAt to " + entity.className).println();
         }
         
         // Check if updatedAt already exists
@@ -576,7 +621,7 @@ operation addAuditFieldsToAllEntities() {
             updatedAtField.isPrimaryKey = false;
             
             entity.fields.add(updatedAtField);
-            ("  Added updatedAt to " + entity.className).println();
+    // ("  Added updatedAt to " + entity.className).println();
         }
     }
 }
@@ -602,14 +647,54 @@ operation Source!Relation determineMappedBy() : String {
 }
 
 /**
- * Get singular form of a word (simple implementation)
+ * Get singular form of a word (enhanced implementation with edge cases)
  */
 operation String singular() : String {
-    if (self.endsWith("ies")) {
+    // Handle empty or single-character strings
+    if (self.length() <= 1) {
+        return self;
+    }
+    
+    // Common irregular plurals
+    if (self = "children") return "child";
+    if (self = "people") return "person";
+    if (self = "men") return "man";
+    if (self = "women") return "woman";
+    if (self = "feet") return "foot";
+    if (self = "teeth") return "tooth";
+    if (self = "geese") return "goose";
+    if (self = "mice") return "mouse";
+    
+    // Words ending in 'ies' (e.g., categories -> category)
+    if (self.length() > 3 and self.endsWith("ies")) {
         return self.substring(0, self.length() - 3) + "y";
     }
-    if (self.endsWith("s") and not self.endsWith("ss")) {
+    
+    // Words ending in 'ses' (e.g., classes -> class, addresses -> address)
+    if (self.length() > 3 and self.endsWith("ses")) {
+        return self.substring(0, self.length() - 2);
+    }
+    
+    // Words ending in 'xes' (e.g., boxes -> box)
+    if (self.length() > 3 and self.endsWith("xes")) {
+        return self.substring(0, self.length() - 2);
+    }
+    
+    // Words ending in 'ches' or 'shes' (e.g., branches -> branch, dishes -> dish)
+    if (self.length() > 4 and (self.endsWith("ches") or self.endsWith("shes"))) {
+        return self.substring(0, self.length() - 2);
+    }
+    
+    // Words ending in 'oes' (e.g., heroes -> hero, tomatoes -> tomato)
+    if (self.length() > 3 and self.endsWith("oes")) {
+        return self.substring(0, self.length() - 2);
+    }
+    
+    // Regular plural: just remove 's' if not ending in 'ss', 'us', 'is'
+    if (self.endsWith("s") and not self.endsWith("ss") and not self.endsWith("us") and not self.endsWith("is")) {
         return self.substring(0, self.length() - 1);
     }
+    
+    // If none of the above, return as-is (likely already singular or special case)
     return self;
 }

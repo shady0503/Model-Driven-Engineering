@@ -86,10 +86,10 @@ public class ForeignKeyTypeCompatibilityValidator implements ModelValidator {
                         "Type mismatch in foreign key: %s.%s (%s) → %s.%s (%s)",
                         table.getName(),
                         column.getName() != null ? column.getName() : "unknown",
-                        sourceType.getName(),
+                        sourceType.getLiteral(),
                         targetTableName,
                         targetColumnName,
-                        targetType.getName()
+                        targetType.getLiteral()
                     );
                     
                     String location = String.format(
