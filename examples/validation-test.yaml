@@ -1,0 +1,190 @@
+?nsuri: http://www.ModelDrivenEngineering.com/model/v1
+BackendConfig:
+  project:
+    Project:
+      name: "ValidationTestProject"
+      groupId: "com.example.validation"
+      language: JAVA
+      framework: SPRING_BOOT
+      javaVersion: 17
+      springBootVersion: "3.2.0"
+  database:
+    Database:
+      type: POSTGRESQL
+      name: "validation_test_db"
+      host: "localhost"
+      port: 5432
+      tables:
+        # Test 1: Table with no primary key (ERROR)
+        - Table:
+            name: "no_primary_key"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: false
+                  nullable: false
+              - Column:
+                  name: "name"
+                  type: STRING
+                  length: 100
+                  
+        # Test 2: Duplicate table name (ERROR)
+        - Table:
+            name: "duplicate_table"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  
+        # Test 3: Another duplicate table name (ERROR)
+        - Table:
+            name: "duplicate_table"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  
+        # Test 4: Foreign key to non-existent table (ERROR)
+        - Table:
+            name: "invalid_fk_table"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "user_id"
+                  type: INTEGER
+                  relation:
+                    Relation:
+                      targetTable: "non_existent_table"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      
+        # Test 5: Foreign key to non-existent column (ERROR)
+        - Table:
+            name: "users"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "username"
+                  type: STRING
+                  length: 50
+                  
+        - Table:
+            name: "invalid_fk_column"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "user_id"
+                  type: INTEGER
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "non_existent_column"
+                      type: MANY_TO_ONE
+                      
+        # Test 6: Foreign key type mismatch (WARNING)
+        - Table:
+            name: "type_mismatch_fk"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "user_id"
+                  type: STRING
+                  length: 50
+                  relation:
+                    Relation:
+                      targetTable: "users"
+                      targetColumn: "id"
+                      type: MANY_TO_ONE
+                      
+        # Test 7: Duplicate column names (ERROR)
+        - Table:
+            name: "duplicate_columns"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "name"
+                  type: STRING
+                  length: 100
+              - Column:
+                  name: "name"
+                  type: STRING
+                  length: 50
+                  
+        # Test 8: Java reserved keyword as table name (ERROR)
+        - Table:
+            name: "class"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  
+        # Test 9: Java reserved keyword as column name (ERROR)
+        - Table:
+            name: "valid_table"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "static"
+                  type: STRING
+                  length: 100
+                  
+        # Test 10: SQL reserved keyword as table name (WARNING)
+        - Table:
+            name: "select"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+                  
+        # Test 11: SQL reserved keyword as column name (WARNING)
+        - Table:
+            name: "products"
+            columns:
+              - Column:
+                  name: "id"
+                  type: INTEGER
+                  primary: true
+              - Column:
+                  name: "order"
+                  type: INTEGER
+                  
+  api:
+    Api:
+      basePath: "/api/v1"
+      routes:
+        # Test 12: Route referencing non-existent entity (ERROR)
+        - Route:
+            entity: "non_existent_entity"
+            methods:
+              - CREATE
+              - READ
+        - Route:
+            entity: "users"
+            methods:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
