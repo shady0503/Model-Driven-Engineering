@@ -91,6 +91,21 @@ public class GenerateCommand implements Callable<Integer> {
         out.info("Eclipse Epsilon Transformation Pipeline");
         System.out.println();
         
+        // Auto-detect YAML file if directory is provided
+        if (yamlFile.isDirectory()) {
+            File detectedYaml = detectYamlFileInDirectory(yamlFile);
+            if (detectedYaml != null) {
+                if (verbose) {
+                    out.info("[VERBOSE] Auto-detected YAML file: " + detectedYaml.getName());
+                }
+                yamlFile = detectedYaml;
+            } else {
+                out.error("No YAML file found in directory: " + yamlFile.getAbsolutePath());
+                out.info("Expected files like: config.yaml, model.yaml, or *.yaml");
+                return ExitCode.INPUT_ERROR;
+            }
+        }
+        
         // Validate input file exists
         if (!yamlFile.exists()) {
             throw new java.io.FileNotFoundException("YAML file not found: " + yamlFile.getAbsolutePath());
@@ -116,9 +131,26 @@ public class GenerateCommand implements Callable<Integer> {
         
         // Check if output directory exists and prompt if needed
         if (outputDir.exists() && !overwrite && !clean) {
-            out.warning("⚠ Output directory already exists: " + outputDir.getAbsolutePath());
-            out.warning("  Use --clean to remove existing files or --overwrite to replace them");
-            return ExitCode.CONFIG_ERROR;
+            // Only warn if directory contains generated project files (not just YAML)
+            if (containsGeneratedProjectFiles(outputDir)) {
+                // If input and output are in the same directory, this is likely a regeneration
+                // Don't warn - just proceed with overwrite
+                File inputDir = yamlFile.getParentFile();
+                if (inputDir != null && inputDir.getAbsolutePath().equals(outputDir.getAbsolutePath())) {
+                    if (verbose) {
+                        out.info("[VERBOSE] Regenerating in same directory - auto-enabling overwrite");
+                    }
+                    overwrite = true; // Auto-enable overwrite for same-directory regeneration
+                } else {
+                    out.warning("⚠ Output directory already exists: " + outputDir.getAbsolutePath());
+                    out.warning("  Use --clean to remove existing files or --overwrite to replace them");
+                    return ExitCode.CONFIG_ERROR;
+                }
+            }
+            // If directory only contains YAML or other non-project files, proceed without warning
+            if (verbose) {
+                out.info("[VERBOSE] Output directory exists but contains no generated project files");
+            }
         }
         
         // Create output directory
@@ -131,8 +163,6 @@ public class GenerateCommand implements Callable<Integer> {
         
         try {
             // Initialize code generator
-            long startTime = System.currentTimeMillis();
-            
             if (verbose) {
                 out.info("[VERBOSE] Initializing code generator...");
             }
@@ -148,27 +178,6 @@ public class GenerateCommand implements Callable<Integer> {
             }
             
             generator.generateProject(inputPath, outputPath);
-            
-            long duration = System.currentTimeMillis() - startTime;
-            
-            // Success message
-            System.out.println();
-            out.banner(ConsoleSymbols.success("GENERATION SUCCESSFUL!"), true);
-            System.out.println();
-            out.success("Generated project: " + outputDir.getAbsolutePath());
-            System.out.println();
-            
-            if (verbose) {
-                out.info("[VERBOSE] Total generation time: " + formatDuration(duration));
-                out.info("[VERBOSE] Peak memory usage: " + formatMemoryUsage());
-            }
-            
-            // Print next steps
-            out.info("Next steps:");
-            out.print("  cd " + outputDir.getPath());
-            out.print("  mvn clean install");
-            out.print("  docker-compose up -d");
-            out.print("  mvn spring-boot:run");
             
             return ExitCode.SUCCESS;
             
@@ -226,5 +235,69 @@ public class GenerateCommand implements Callable<Integer> {
                     }
                 });
         }
+    }
+    
+    /**
+     * Auto-detect YAML file in a directory.
+     * Looks for common names first, then falls back to any .yaml file.
+     */
+    private File detectYamlFileInDirectory(File directory) {
+        if (!directory.isDirectory()) {
+            return null;
+        }
+        
+        // Priority list of common YAML file names
+        String[] commonNames = {
+            "model.yaml", "config.yaml", "backend.yaml",
+            "model.yml", "config.yml", "backend.yml"
+        };
+        
+        // Check common names first
+        for (String name : commonNames) {
+            File candidate = new File(directory, name);
+            if (candidate.exists() && candidate.isFile()) {
+                return candidate;
+            }
+        }
+        
+        // Fall back to first .yaml or .yml file found
+        File[] yamlFiles = directory.listFiles((dir, name) -> 
+            name.toLowerCase().endsWith(".yaml") || name.toLowerCase().endsWith(".yml")
+        );
+        
+        if (yamlFiles != null && yamlFiles.length > 0) {
+            return yamlFiles[0];
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if directory contains generated project files.
+     * Returns true if it contains typical Spring Boot project structure.
+     */
+    private boolean containsGeneratedProjectFiles(File directory) {
+        if (!directory.isDirectory()) {
+            return false;
+        }
+        
+        // Check for typical generated project indicators
+        String[] projectIndicators = {
+            "pom.xml",              // Maven project file
+            "src",                  // Source directory
+            "docker-compose.yml",   // Docker file
+            "README.md"             // Generated README
+        };
+        
+        int matchCount = 0;
+        for (String indicator : projectIndicators) {
+            File file = new File(directory, indicator);
+            if (file.exists()) {
+                matchCount++;
+            }
+        }
+        
+        // If 2 or more indicators exist, consider it a generated project
+        return matchCount >= 2;
     }
 }

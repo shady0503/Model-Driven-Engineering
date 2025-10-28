@@ -1,6 +1,8 @@
 # Example YAML Configurations
 
-This directory contains three diverse example YAML configurations demonstrating different domain models and features of the MDE Backend Generator.
+This directory contains example YAML configurations demonstrating different domain models and features of the MDE Backend Generator.
+
+**✨ NEW**: No need to add `?nsuri:` namespace declaration! The generator automatically adds it for you.
 
 **⚠️ IMPORTANT**: All examples use only features **currently supported** by the MDE metamodel. See [supported features](#supported-features) section below.
 

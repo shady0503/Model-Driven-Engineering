@@ -1,8 +1,38 @@
-[* This template generates docker-compose.yml for database *]
+[* This template generates docker-compose.yml for the application and database *]
 [% var project = ProjectContext.all.first(); %]
 version: '3.8'
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: [%= project.artifactId %]-app
+    ports:
+      - "8080:8080"
+    environment:
+      [% if (project.databaseType.toLowerCase() = "postgresql") { %]
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/[%= project.databaseName %]
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/[%= project.databaseName %]
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      [% } %]
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      [% if (project.databaseType.toLowerCase() = "postgresql") { %]
+      postgres:
+        condition: service_healthy
+      [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
+      mysql:
+        condition: service_healthy
+      [% } %]
+    networks:
+      - [%= project.artifactId %]-network
+    restart: unless-stopped
+
   [% if (project.databaseType.toLowerCase() = "postgresql") { %]
   postgres:
     image: postgres:15-alpine
@@ -17,6 +47,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - [%= project.artifactId %]-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
@@ -34,6 +69,11 @@ volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - [%= project.artifactId %]-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:

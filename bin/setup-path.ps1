@@ -13,76 +13,20 @@ Write-Host "    MDE Generator - PATH Setup" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Determine the MDE installation directory
-$MdeRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BinDir = Join-Path $MdeRoot "bin"
-
-# Create bin directory if it doesn't exist
-if (-not (Test-Path $BinDir)) {
-    Write-Host "Creating bin directory..." -ForegroundColor Yellow
-    New-Item -ItemType Directory -Path $BinDir -Force | Out-Null
-}
-
-# Create examples directory in bin
-$ExamplesDir = Join-Path $BinDir "examples"
-if (-not (Test-Path $ExamplesDir)) {
-    Write-Host "Creating examples directory..." -ForegroundColor Yellow
-    New-Item -ItemType Directory -Path $ExamplesDir -Force | Out-Null
-}
-
-# Copy example YAML files
-Write-Host "Copying example files..." -ForegroundColor Cyan
-$SourceExamplesDir = Join-Path $MdeRoot "examples"
-if (Test-Path $SourceExamplesDir) {
-    Get-ChildItem -Path $SourceExamplesDir -Filter "*.yaml" | ForEach-Object {
-        Copy-Item $_.FullName -Destination $ExamplesDir -Force
-        Write-Host "  Copied: $($_.Name)" -ForegroundColor Green
-    }
-}
-
-# Copy executable scripts to bin directory
-Write-Host "Copying executable scripts to bin..." -ForegroundColor Cyan
-
+# Determine the bin directory (where this script is located)
+$BinDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$MdeRoot = Split-Path -Parent $BinDir
 $JarFile = Join-Path $MdeRoot "target\mde-gen.jar"
+
+# Verify JAR file exists
 if (-not (Test-Path $JarFile)) {
     Write-Host "ERROR: mde-gen.jar not found!" -ForegroundColor Red
-    Write-Host "Please run: .\mvnw.cmd clean package" -ForegroundColor Yellow
+    Write-Host "Please run from project root: .\mvnw.cmd clean package" -ForegroundColor Yellow
+    Write-Host "Expected location: $JarFile" -ForegroundColor Yellow
     exit 1
 }
 
-# Create mde-gen.bat in bin directory
-$BatchContent = @"
-@echo off
-set JAR_FILE=%~dp0..\target\mde-gen.jar
-if not exist "%JAR_FILE%" (
-    echo Error: mde-gen.jar not found!
-    echo Please run: mvnw.cmd clean package
-    exit /b 1
-)
-java -jar "%JAR_FILE%" %*
-"@
-
-$BatchFile = Join-Path $BinDir "mde-gen.bat"
-Set-Content -Path $BatchFile -Value $BatchContent -Encoding ASCII
-Write-Host "  Created: $BatchFile" -ForegroundColor Green
-
-# Create mde-gen.ps1 in bin directory
-$PowerShellContent = @'
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$JarFile = Join-Path $ScriptDir "..\target\mde-gen.jar"
-if (-not (Test-Path $JarFile)) {
-    Write-Host "Error: mde-gen.jar not found!" -ForegroundColor Red
-    Write-Host "Please run: .\mvnw.cmd clean package" -ForegroundColor Yellow
-    exit 1
-}
-& java -jar $JarFile $args
-exit $LASTEXITCODE
-'@
-
-$PowerShellFile = Join-Path $BinDir "mde-gen.ps1"
-Set-Content -Path $PowerShellFile -Value $PowerShellContent -Encoding UTF8
-Write-Host "  Created: $PowerShellFile" -ForegroundColor Green
-
+Write-Host "+ JAR file found: $JarFile" -ForegroundColor Green
 Write-Host ""
 
 # Determine scope
@@ -100,10 +44,11 @@ Write-Host ""
 # Get current PATH
 $CurrentPath = [Environment]::GetEnvironmentVariable("Path", $Scope)
 
-# Always set MDE_EXAMPLES environment variable
+# Set MDE_EXAMPLES environment variable to root examples directory
+$ExamplesDir = Join-Path $MdeRoot "examples"
 Write-Host "Setting up MDE_EXAMPLES environment variable..." -ForegroundColor Cyan
-[Environment]::SetEnvironmentVariable("MDE_EXAMPLES", "$BinDir\examples", $Scope)
-Write-Host "[OK] MDE_EXAMPLES = $BinDir\examples" -ForegroundColor Green
+[Environment]::SetEnvironmentVariable("MDE_EXAMPLES", $ExamplesDir, $Scope)
+Write-Host "[OK] MDE_EXAMPLES = $ExamplesDir" -ForegroundColor Green
 Write-Host ""
 
 # Check if already in PATH

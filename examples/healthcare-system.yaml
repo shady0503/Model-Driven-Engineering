@@ -1,6 +1,5 @@
 # Healthcare Management System
 # Demonstrates: Complex medical domain, multiple relationships, various data types
-?nsuri: http://www.ModelDrivenEngineering.com/model/v1
 
 BackendConfig:
   project:

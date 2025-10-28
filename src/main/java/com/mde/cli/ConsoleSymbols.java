@@ -36,7 +36,21 @@ public class ConsoleSymbols {
             return false;
         }
         
-        // Check console encoding
+        // Check if running on Windows
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("windows")) {
+            // Windows PowerShell and CMD have issues with Unicode symbols
+            // Only enable Unicode if we detect Windows Terminal or explicit UTF-8 support
+            String wtSession = System.getenv("WT_SESSION");
+            if (wtSession != null && !wtSession.isEmpty()) {
+                // Windows Terminal supports Unicode
+                return true;
+            }
+            // Disable Unicode for traditional Windows consoles
+            return false;
+        }
+        
+        // Check console encoding for non-Windows systems
         try {
             Charset consoleCharset = Charset.defaultCharset();
             String charsetName = consoleCharset.name().toLowerCase();
@@ -46,14 +60,7 @@ public class ConsoleSymbols {
                 return true;
             }
             
-            // Windows code pages that DON'T support Unicode checkmarks
-            if (charsetName.contains("cp437") || 
-                charsetName.contains("cp850") ||
-                charsetName.contains("windows-1252")) {
-                return false;
-            }
-            
-            // Default to true for modern systems
+            // Default to true for modern Unix/Linux/Mac systems
             return true;
             
         } catch (Exception e) {

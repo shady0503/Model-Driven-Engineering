@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Generated Test Projects ###
+generated-project/
+test-output/
+test-social/
+test-*/
+
+### Distribution Files ###
+dist/
+
