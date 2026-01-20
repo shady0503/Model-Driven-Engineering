@@ -44,7 +44,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - [%= project.artifactId %]_postgres_data:/var/lib/postgresql/data
     networks:
       - [%= project.artifactId %]-network
     healthcheck:
@@ -54,7 +54,7 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
+  [%= project.artifactId %]_postgres_data:
 
   [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
   mysql:
@@ -66,7 +66,7 @@ volumes:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - [%= project.artifactId %]_mysql_data:/var/lib/mysql
     networks:
       - [%= project.artifactId %]-network
     healthcheck:
@@ -76,7 +76,7 @@ volumes:
       retries: 5
 
 volumes:
-  mysql_data:
+  [%= project.artifactId %]_mysql_data:
 
   [% } %]
 networks:

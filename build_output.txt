@@ -1,0 +1,19 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------------< com.mde:mde >-----------------------------
+[INFO] Building Model Driven Engineering 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ mde ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 14 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.0:compile (default-compile) @ mde ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.567 s
+[INFO] Finished at: 2026-01-20T21:38:17+01:00
+[INFO] ------------------------------------------------------------------------

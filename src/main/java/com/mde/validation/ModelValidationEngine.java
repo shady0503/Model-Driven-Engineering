@@ -1,6 +1,6 @@
 package com.mde.validation;
 
-import com.mde.ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.BackendConfig;
 
 import java.util.ArrayList;
 import java.util.List;

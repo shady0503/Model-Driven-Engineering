@@ -8,7 +8,7 @@ import com.mde.cli.ConsoleSymbols;
 import com.mde.generator.egl.EGLTemplateEngine;
 import com.mde.generator.etl.ETLTransformationEngine;
 import com.mde.loader.FlexmiModelLoader;
-import com.mde.ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.BackendConfig;
 
 /**
  * Code Generator - Main Orchestrator

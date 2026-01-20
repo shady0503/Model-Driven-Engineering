@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
-    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/MDE/src/main/java" modelPluginID="MDE" modelName="MDE"
-    rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container" importerID="org.eclipse.emf.importer.ecore"
-    complianceLevel="17.0" copyrightFields="false" operationReflection="true" importOrganizing="true">
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/MDE/src" modelPluginID="MDE" modelName="MDE" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true">
   <foreignModel>MDE.ecore</foreignModel>
-  <genPackages prefix="ModelDriven" basePackage="com.mde" disposableProviderFactory="true"
-      ecorePackage="MDE.ecore#/">
+  <genPackages prefix="ModelDrivenEngineering" disposableProviderFactory="true" ecorePackage="MDE.ecore#/">
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//Language">
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//Language/Java"/>
     </genEnums>
@@ -27,10 +26,10 @@
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//DataType/DateTime"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//RelationType">
-      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/oneToMany"/>
-      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/manyToOne"/>
-      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/oneToOne"/>
-      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/manyToMany"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/ONE_TO_MANY"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/MANY_TO_ONE"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/ONE_TO_ONE"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/MANY_TO_MANY"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//CascadeType">
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//CascadeType/cascade"/>
@@ -67,6 +66,7 @@
     <genClasses ecoreClass="MDE.ecore#//Table">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Table/name"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MDE.ecore#//Table/columns"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference MDE.ecore#//Table/relations"/>
     </genClasses>
     <genClasses ecoreClass="MDE.ecore#//Column">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Column/name"/>

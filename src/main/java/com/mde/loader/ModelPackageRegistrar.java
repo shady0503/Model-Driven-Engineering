@@ -1,7 +1,7 @@
 package com.mde.loader;
 
 import com.mde.cli.ConsoleSymbols;
-import com.mde.ModelDrivenEngineering.ModelDrivenPackage;
+import ModelDrivenEngineering.ModelDrivenEngineeringPackage;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.epsilon.flexmi.FlexmiResourceFactory;
@@ -46,15 +46,16 @@ public class ModelPackageRegistrar {
         System.out.println("Registering Ecore package...");
 
         // Step 1: Initialize the package (triggers EMF initialization)
-        ModelDrivenPackage ModelDriven = ModelDrivenPackage.eINSTANCE;
+        ModelDrivenEngineeringPackage ModelDriven = ModelDrivenEngineeringPackage.eINSTANCE;
 
         // Step 2: Register the package in EMF's global registry
         EPackage.Registry globalRegistry = EPackage.Registry.INSTANCE;
 
         // Check if already registered
-        if (!globalRegistry.containsKey(ModelDrivenPackage.eNS_URI)) {
-            globalRegistry.put(ModelDrivenPackage.eNS_URI, ModelDriven);
-            System.out.println("  " + ConsoleSymbols.SUCCESS + " Package registered with URI: " + ModelDrivenPackage.eNS_URI);
+        if (!globalRegistry.containsKey(ModelDrivenEngineeringPackage.eNS_URI)) {
+            globalRegistry.put(ModelDrivenEngineeringPackage.eNS_URI, ModelDriven);
+            System.out.println("  " + ConsoleSymbols.SUCCESS + " Package registered with URI: "
+                    + ModelDrivenEngineeringPackage.eNS_URI);
         } else {
             System.out.println("  " + ConsoleSymbols.INFO + " Package already registered");
         }

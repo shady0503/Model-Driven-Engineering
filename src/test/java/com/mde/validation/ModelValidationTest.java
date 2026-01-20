@@ -1,6 +1,6 @@
 package com.mde.validation;
 
-import com.mde.ModelDrivenEngineering.*;
+import ModelDrivenEngineering.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,11 +13,11 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ModelValidationTest {
     
-    private ModelDrivenFactory factory;
+    private ModelDrivenEngineeringFactory factory;
     
     @BeforeEach
     void setUp() {
-        factory = ModelDrivenFactory.eINSTANCE;
+        factory = ModelDrivenEngineeringFactory.eINSTANCE;
     }
     
     // ==================== PrimaryKeyValidator Tests ====================

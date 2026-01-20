@@ -17,8 +17,8 @@ import org.eclipse.epsilon.emc.emf.EmfModel;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.etl.EtlModule;
 
-import com.mde.ModelDrivenEngineering.BackendConfig;
-import com.mde.ModelDrivenEngineering.ModelDrivenPackage;
+import ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.ModelDrivenEngineeringPackage;
 import com.mde.generator.Context.ContextPackage;
 
 /**
@@ -152,7 +152,7 @@ public class ETLTransformationEngine {
      */
     private void initializeEMF() {
         // Register both metamodels
-        EPackage.Registry.INSTANCE.put(ModelDrivenPackage.eNS_URI, ModelDrivenPackage.eINSTANCE);
+        EPackage.Registry.INSTANCE.put(ModelDrivenEngineeringPackage.eNS_URI, ModelDrivenEngineeringPackage.eINSTANCE);
         EPackage.Registry.INSTANCE.put(ContextPackage.eNS_URI, ContextPackage.eINSTANCE);
         
         // Register XMI resource factory
@@ -166,7 +166,7 @@ public class ETLTransformationEngine {
     private EmfModel createSourceModelFromObject(BackendConfig backendConfig) throws EolModelLoadingException {
         // Create a resource set
         ResourceSet resourceSet = new ResourceSetImpl();
-        resourceSet.getPackageRegistry().put(ModelDrivenPackage.eNS_URI, ModelDrivenPackage.eINSTANCE);
+        resourceSet.getPackageRegistry().put(ModelDrivenEngineeringPackage.eNS_URI, ModelDrivenEngineeringPackage.eINSTANCE);
         resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xmi", new XMIResourceFactoryImpl());
         
         // Create a resource with a file URI (but we won't actually save to disk)
@@ -181,7 +181,7 @@ public class ETLTransformationEngine {
         EmfModel model = new EmfModel();
         model.setName("Source");
         model.setResource(resource);
-        model.setMetamodelUri(ModelDrivenPackage.eNS_URI);
+        model.setMetamodelUri(ModelDrivenEngineeringPackage.eNS_URI);
         model.setReadOnLoad(false);  // Already loaded in memory
         model.setStoredOnDisposal(false);  // Don't save when disposed
         // Don't call load() since the resource is already populated
@@ -196,7 +196,7 @@ public class ETLTransformationEngine {
         EmfModel model = new EmfModel();
         model.setName("Source");
         model.setModelFile(modelPath.toString());
-        model.setMetamodelUri(ModelDrivenPackage.eNS_URI);
+        model.setMetamodelUri(ModelDrivenEngineeringPackage.eNS_URI);
         model.setReadOnLoad(true);
         model.setStoredOnDisposal(false);
         model.load();

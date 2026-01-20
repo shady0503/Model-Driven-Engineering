@@ -2,7 +2,7 @@ package com.mde.cli;
 
 import com.mde.loader.FlexmiModelLoaderWithValidation;
 import com.mde.loader.LoadException;
-import com.mde.ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.BackendConfig;
 import com.mde.validation.ValidationResult;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

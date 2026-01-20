@@ -90,9 +90,17 @@ public class [%= entity.className %] implements Serializable {
     %]
     @JsonIgnore
     @[%= jpaAnnotation %][% if (relation.fetchType.isDefined()) { %](fetch = FetchType.[%= relation.fetchType %][% if (not relation.isOwner and relation.mappedBy.isDefined()) { %], mappedBy = "[%= relation.mappedBy %]"[% } %])[% } else if (not relation.isOwner and relation.mappedBy.isDefined()) { %](mappedBy = "[%= relation.mappedBy %]")[% } %]
-    [% if (relation.isOwner and relation.joinColumnName.isDefined()) { %]
+
+    [% if (relation.isOwner and relType = "MANY_TO_MANY") { %]
+    @JoinTable(
+        name = "[%= entity.tableName %]_[%= relation.targetEntity.toLowerCase() %]",
+        joinColumns = @JoinColumn(name = "[%= entity.tableName.singular() %]_id"),
+        inverseJoinColumns = @JoinColumn(name = "[%= relation.targetEntity.toLowerCase() %]_id")
+    )
+    [% } else if (relation.isOwner and relation.joinColumnName.isDefined()) { %]
     @JoinColumn(name = "[%= relation.joinColumnName %]")
     [% } %]
+
     [% if (relation.relationType.contains("TO_MANY")) { %]
     private List<[%= relation.targetEntity %]> [%= relation.fieldName %];
     [% } else { %]
@@ -101,3 +109,16 @@ public class [%= entity.className %] implements Serializable {
     
     [% } %]
 }
+
+[%
+/**
+ * Get singular form of a word
+ */
+operation String singular() : String {
+    if (self.length() <= 1) return self;
+    if (self.endsWith("ies")) return self.substring(0, self.length() - 3) + "y";
+    if (self.endsWith("ses") or self.endsWith("xes") or self.endsWith("ches") or self.endsWith("shes")) return self.substring(0, self.length() - 2);
+    if (self.endsWith("s") and not self.endsWith("ss")) return self.substring(0, self.length() - 1);
+    return self;
+}
+%]
