@@ -1,10 +1,10 @@
 package com.mde.validation;
 
-import com.mde.ModelDrivenEngineering.BackendConfig;
-import com.mde.ModelDrivenEngineering.Column;
-import com.mde.ModelDrivenEngineering.DataType;
-import com.mde.ModelDrivenEngineering.Relation;
-import com.mde.ModelDrivenEngineering.Table;
+import ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.Column;
+import ModelDrivenEngineering.DataType;
+import ModelDrivenEngineering.Relation;
+import ModelDrivenEngineering.Table;
 
 import java.util.ArrayList;
 import java.util.HashMap;

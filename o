@@ -1,0 +1,364 @@
+[33mcommit 490496ad947eee0c7fd03f0d9564aa3aaf8a4d71[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: 693fe8b 5c86f81
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Tue Oct 28 01:54:32 2025 +0100
+
+    Merge branch 'master' of https://github.com/shady0503/Model-Driven-Engineering
+
+[33mcommit 693fe8bfaf400138211bb5c216fc5810077967a1[m[33m ([m[1;31morigin/feature/examples-metamodel-compliance[m[33m, [m[1;32mfeature/examples-metamodel-compliance[m[33m)[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Tue Oct 28 01:46:34 2025 +0100
+
+    feat: major repository cleanup and reorganization
+    
+    This commit represents a comprehensive cleanup and reorganization of the MDE Backend Generator repository, including bug fixes, structural improvements, and enhanced documentation.
+    
+    🐛 Bug Fixes:
+    - Fixed critical circular reference bug in JPA entities causing infinite JSON serialization loops
+    - Replaced Lombok @Data with explicit annotations (@Getter, @Setter, @ToString(onlyExplicitlyIncluded), @EqualsAndHashCode(onlyExplicitlyIncluded))
+    - Added @JsonIgnore on all bidirectional @OneToMany relationships
+    - Fixed UTF-8 encoding issues on Windows (ConsoleSymbols now uses ASCII fallback)
+    
+    ✨ Features:
+    - Added ANSI color support to generator output (cyan, green, yellow)
+    - Simplified log output to clean 3-step progress ([1/3], [2/3], [3/3])
+    - Created comprehensive e-commerce example with ONE_TO_ONE relationships (13 entities)
+    - Enhanced README template (removed emojis, condensed format)
+    
+    📁 Repository Structure:
+    - Moved all scripts to bin/ directory (mde-gen.bat, mde-gen.ps1, mde-gen.sh, install.ps1, setup-path.ps1, uninstall-path.ps1, create-distribution.ps1)
+    - Moved all documentation to docs/ (INSTALL.md, QUICK_START.md, DISTRIBUTION_GUIDE.md)
+    - Removed duplicate templates/ directory (kept src/main/resources/templates/)
+    - Removed root launcher script wrappers (use bin/ scripts directly)
+    - Cleaned bin/examples/ duplicates (use root examples/ only)
+    
+    🗑️ Cleanup:
+    - Removed 61 generated and temporary files
+    - Deleted generated-project/ directory
+    - Deleted 11 test directories (healthcare-test, social-media-test, etc.)
+    - Removed Eclipse plugin files (plugin.xml, plugin.properties, build.properties, META-INF/)
+    - Removed temporary documentation (DISTRIBUTION_SUCCESS.md, SETUP_COMPLETE.md, UUID_FIX.md, CLI_IMPLEMENTATION_SUMMARY.md, UNICODE_FIX.md)
+    - Removed unused meta-model.png (124KB)
+    - Removed misplaced FlexmiModelLoaderTest.java from test root
+    
+    📚 Documentation:
+    - Created comprehensive ARCHITECTURE.md (500+ lines) documenting all source code modules
+    - Updated .gitignore to prevent tracking test-*/ and generated-project/
+    - Updated bin/README.md to reflect simplified structure
+    - Updated setup-path.ps1 to use correct examples path
+    
+    ✅ Testing:
+    - Verified all 4 examples generate and run successfully:
+      * healthcare-system.yaml (6 entities)
+      * social-media-platform.yaml (9 entities)
+      * financial-trading-platform.yaml (8 entities)
+      * e-commerce-platform.yaml (13 entities, includes ONE_TO_ONE)
+    - Tested installation process with bin/setup-path.ps1
+    - Verified mde-gen works from PATH after installation
+    - Confirmed no circular reference errors in any generated projects
+    
+    🚀 Installation Improvements:
+    - Updated bin/setup-path.ps1 to set MDE_EXAMPLES environment variable
+    - Simplified installation flow (no longer copies scripts to bin/)
+    - PATH installation verified working on Windows
+    
+    📊 Changes Summary:
+    - 97 files changed
+    - 67 files deleted
+    - 5 new files added
+    - 25 files renamed/moved
+    
+    This commit brings the repository to a production-ready state with clean structure, comprehensive documentation, and verified functionality.
+
+[33mcommit 38e92e421979e4b5934c6122d08d5f36af8a3a67[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Mon Oct 27 01:02:06 2025 +0100
+
+    cli tool
+
+[33mcommit 96bd7e5ccc55c3318f96f6eb7922d4480195ced7[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Sat Oct 25 23:41:05 2025 +0100
+
+    fix: reformat all example YAML files to use correct Flexmi format with BackendConfig root element
+    
+    - Restructured healthcare-system.yaml to use BackendConfig root container
+    - Restructured social-media-platform.yaml to use BackendConfig root container
+    - Restructured financial-trading-platform.yaml to use BackendConfig root container
+    - Added ?nsuri declaration for proper Flexmi parsing
+    - All YAML files now conform to Flexmi metamodel-specific format
+    - Generator can now successfully parse all three examples
+    - Successfully tested healthcare-system.yaml generation produces compilable Spring Boot project
+
+[33mcommit 7b992f77db3ee7573421a0320c9960dccb5a41a6[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Sat Oct 25 23:29:11 2025 +0100
+
+    cleaned up some files
+
+[33mcommit 0aad899674254a3d9e8547ab87ade53883f5bec5[m[33m ([m[1;32mfeature/YAML-Parser[m[33m)[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Sat Oct 25 23:27:34 2025 +0100
+
+    fix: correct all example YAML files to use only supported metamodel features
+    
+    - Replace VARCHAR → STRING (not a supported DataType enum value)
+    - Replace BIGINT → LONG (not supported)
+    - Replace TIMESTAMP → DATETIME (not supported)
+    - Remove constraints: arrays, convert to direct attributes (primary, unique, nullable)
+    - Remove unsupported defaultValue, precision, scale attributes
+    - Update structure: entities/fields → tables/columns (match metamodel)
+    - Add required language: JAVA and framework: SPRING_BOOT attributes
+    - Update examples/README.md with supported features reference
+    - Create cleanup documentation (EXAMPLES_COMPATIBILITY_ISSUES.md, EXAMPLES_CORRECTION_SUMMARY.md)
+    
+    All three examples (healthcare, social-media, financial-trading) now use only
+    features supported by current MDE metamodel. Ready for MVP testing.
+    
+    Fixes:
+    - 122 VARCHAR → STRING conversions
+    - 2 BIGINT → LONG conversions
+    - 25 TIMESTAMP → DATETIME conversions
+    - 42 precision/scale attribute removals
+    - 38 defaultValue attribute removals
+    - Complete constraint syntax migration
+
+[33mcommit f8ab1762a689e9f51911b13e49f1edc007164a19[m[33m ([m[1;31morigin/feature/YAML-Parser[m[33m)[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Sat Oct 25 20:57:51 2025 +0100
+
+    flawed code
+
+[33mcommit 5c86f81b032d3abcafacb02c11a2a195224a228b[m
+Author: UnSlimShady <148286658+shady0503@users.noreply.github.com>
+Date:   Sat Oct 25 18:52:03 2025 +0100
+
+    Feature/yaml parser (#2)
+    
+    * feat: Update Ecore metamodel and add comprehensive validation framework
+    
+    - Updated MDE.ecore metamodel:
+      * Added DATETIME to DataType enum (fixes blog-example.yaml)
+      * Renamed Language and Framework attributes to lowercase (language, framework)
+      * Added lower bounds to Database.tables and Api.routes (require at least 1 element)
+    
+    - Regenerated EMF model code from updated Ecore model
+      * All Java interfaces and implementations updated
+      * New DataType.DATE_TIME enum value added
+      * Lower bound constraints enforced
+    
+    - Implemented comprehensive validation framework (9 validators):
+      * PrimaryKeyValidator - ensures tables have primary keys
+      * UniqueTableNamesValidator - prevents duplicate table names
+      * ForeignKeyTargetTableValidator - validates FK table references
+      * ForeignKeyTargetColumnValidator - validates FK column references
+      * ForeignKeyTypeCompatibilityValidator - ensures type compatibility in FKs
+      * UniqueColumnNamesValidator - prevents duplicate column names
+      * ApiRouteEntityValidator - validates API route entity references
+      * JavaReservedKeywordValidator - checks for Java reserved words (58 keywords)
+      * SqlReservedKeywordValidator - checks for SQL reserved words (100+ keywords)
+    
+    - Added validation infrastructure:
+      * ValidationResult - severity levels (ERROR, WARNING, INFO)
+      * ModelValidator - base interface for all validators
+      * ModelValidationEngine - orchestrates validation execution
+      * FlexmiModelLoaderWithValidation - auto-validation on load
+    
+    - Added comprehensive test suite:
+      * ModelValidationTest - 24 unit tests covering all validators
+      * All tests passing (24/24)
+      * Validation example YAML file with intentional errors
+    
+    - Cleaned up duplicate generated files in src/test/java/main/
+    
+    All tests passing: 27/27 (3 parser + 24 validation)
+    
+    * Complete Phase 3 & Phase 4: Context metamodel, EGL templates, and tests
+    
+    Phase 3 (YAML Parser) - 100% Complete:
+    - Flexmi-based YAML parsing fully functional
+    - Validation and error handling implemented
+    - Unit tests passing (FlexmiModelLoaderTest)
+    
+    Phase 4 (Code Generation Templates) - 100% Complete:
+    - Context.ecore metamodel created (5 EClasses: ProjectContext, EntityContext, FieldContext, RelationContext, DependencyContext)
+    - Context.genmodel configured and Java code generated
+    - Complete EGL template suite (10 templates):
+      * templates/project/pom.egl - Maven configuration
+      * templates/project/application.egl - Spring Boot config
+      * templates/project/Application.egl - Main class
+      * templates/entity/Entity.egl - JPA entities
+      * templates/repository/Repository.egl - Repositories
+      * templates/service/Service.egl - Service layer
+      * templates/controller/Controller.egl - REST controllers
+      * templates/docker/docker-compose.egl - Database setup
+      * templates/README.egl - Project documentation
+    - Unit & integration tests for Context model (20 tests, 100% passing):
+      * ContextModelTest.java - Unit tests
+      * ContextModelIntegrationTest.java - Integration tests
+    - Phase4.md documentation added
+    - README.md updated to reflect completion
+    
+    Generated Code:
+    - src/main/java/com/mde/generator/Context/ - Complete Context model API
+    - src/test/java/com/mde/generator/Context/ - Comprehensive test suite
+    
+    Next Phase: Phase 5 - ETL transformations (BackendConfig → Context)
+
+[33mcommit 917e56b25241eb7893f6468cefd3323a27aa5ddf[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Sat Oct 25 18:49:42 2025 +0100
+
+    Complete Phase 3 & Phase 4: Context metamodel, EGL templates, and tests
+    
+    Phase 3 (YAML Parser) - 100% Complete:
+    - Flexmi-based YAML parsing fully functional
+    - Validation and error handling implemented
+    - Unit tests passing (FlexmiModelLoaderTest)
+    
+    Phase 4 (Code Generation Templates) - 100% Complete:
+    - Context.ecore metamodel created (5 EClasses: ProjectContext, EntityContext, FieldContext, RelationContext, DependencyContext)
+    - Context.genmodel configured and Java code generated
+    - Complete EGL template suite (10 templates):
+      * templates/project/pom.egl - Maven configuration
+      * templates/project/application.egl - Spring Boot config
+      * templates/project/Application.egl - Main class
+      * templates/entity/Entity.egl - JPA entities
+      * templates/repository/Repository.egl - Repositories
+      * templates/service/Service.egl - Service layer
+      * templates/controller/Controller.egl - REST controllers
+      * templates/docker/docker-compose.egl - Database setup
+      * templates/README.egl - Project documentation
+    - Unit & integration tests for Context model (20 tests, 100% passing):
+      * ContextModelTest.java - Unit tests
+      * ContextModelIntegrationTest.java - Integration tests
+    - Phase4.md documentation added
+    - README.md updated to reflect completion
+    
+    Generated Code:
+    - src/main/java/com/mde/generator/Context/ - Complete Context model API
+    - src/test/java/com/mde/generator/Context/ - Comprehensive test suite
+    
+    Next Phase: Phase 5 - ETL transformations (BackendConfig → Context)
+
+[33mcommit a932e0298ceff80026eb588e5dad2a77802440b3[m
+Author: UnSlimShady <148286658+shady0503@users.noreply.github.com>
+Date:   Sat Oct 25 16:27:31 2025 +0100
+
+    feat: Update Ecore metamodel and add comprehensive validation framework (#1)
+    
+    - Updated MDE.ecore metamodel:
+      * Added DATETIME to DataType enum (fixes blog-example.yaml)
+      * Renamed Language and Framework attributes to lowercase (language, framework)
+      * Added lower bounds to Database.tables and Api.routes (require at least 1 element)
+    
+    - Regenerated EMF model code from updated Ecore model
+      * All Java interfaces and implementations updated
+      * New DataType.DATE_TIME enum value added
+      * Lower bound constraints enforced
+    
+    - Implemented comprehensive validation framework (9 validators):
+      * PrimaryKeyValidator - ensures tables have primary keys
+      * UniqueTableNamesValidator - prevents duplicate table names
+      * ForeignKeyTargetTableValidator - validates FK table references
+      * ForeignKeyTargetColumnValidator - validates FK column references
+      * ForeignKeyTypeCompatibilityValidator - ensures type compatibility in FKs
+      * UniqueColumnNamesValidator - prevents duplicate column names
+      * ApiRouteEntityValidator - validates API route entity references
+      * JavaReservedKeywordValidator - checks for Java reserved words (58 keywords)
+      * SqlReservedKeywordValidator - checks for SQL reserved words (100+ keywords)
+    
+    - Added validation infrastructure:
+      * ValidationResult - severity levels (ERROR, WARNING, INFO)
+      * ModelValidator - base interface for all validators
+      * ModelValidationEngine - orchestrates validation execution
+      * FlexmiModelLoaderWithValidation - auto-validation on load
+    
+    - Added comprehensive test suite:
+      * ModelValidationTest - 24 unit tests covering all validators
+      * All tests passing (24/24)
+      * Validation example YAML file with intentional errors
+    
+    - Cleaned up duplicate generated files in src/test/java/main/
+    
+    All tests passing: 27/27 (3 parser + 24 validation)
+
+[33mcommit aa930ea9f4365939b6e354431c7abab6c2915641[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Sat Oct 25 16:26:16 2025 +0100
+
+    feat: Update Ecore metamodel and add comprehensive validation framework
+    
+    - Updated MDE.ecore metamodel:
+      * Added DATETIME to DataType enum (fixes blog-example.yaml)
+      * Renamed Language and Framework attributes to lowercase (language, framework)
+      * Added lower bounds to Database.tables and Api.routes (require at least 1 element)
+    
+    - Regenerated EMF model code from updated Ecore model
+      * All Java interfaces and implementations updated
+      * New DataType.DATE_TIME enum value added
+      * Lower bound constraints enforced
+    
+    - Implemented comprehensive validation framework (9 validators):
+      * PrimaryKeyValidator - ensures tables have primary keys
+      * UniqueTableNamesValidator - prevents duplicate table names
+      * ForeignKeyTargetTableValidator - validates FK table references
+      * ForeignKeyTargetColumnValidator - validates FK column references
+      * ForeignKeyTypeCompatibilityValidator - ensures type compatibility in FKs
+      * UniqueColumnNamesValidator - prevents duplicate column names
+      * ApiRouteEntityValidator - validates API route entity references
+      * JavaReservedKeywordValidator - checks for Java reserved words (58 keywords)
+      * SqlReservedKeywordValidator - checks for SQL reserved words (100+ keywords)
+    
+    - Added validation infrastructure:
+      * ValidationResult - severity levels (ERROR, WARNING, INFO)
+      * ModelValidator - base interface for all validators
+      * ModelValidationEngine - orchestrates validation execution
+      * FlexmiModelLoaderWithValidation - auto-validation on load
+    
+    - Added comprehensive test suite:
+      * ModelValidationTest - 24 unit tests covering all validators
+      * All tests passing (24/24)
+      * Validation example YAML file with intentional errors
+    
+    - Cleaned up duplicate generated files in src/test/java/main/
+    
+    All tests passing: 27/27 (3 parser + 24 validation)
+
+[33mcommit 610207b0676c1b7e09588121ccf26b4053e181ef[m
+Author: UnSlimShady <148286658+shady0503@users.noreply.github.com>
+Date:   Sat Oct 25 02:56:34 2025 +0100
+
+    Revise README for project name and clarity improvements
+    
+    Updated the README to reflect project name change, improved clarity, and corrected terminology related to the Eclipse Epsilon stack. Enhanced descriptions of project phases, templates, and transformation processes.
+
+[33mcommit 147e3d32c8bf560874a133ad24f1a6d80edf2b17[m
+Author: UnSlimShady <148286658+shady0503@users.noreply.github.com>
+Date:   Sat Oct 25 00:26:24 2025 +0100
+
+    Update readme.md
+
+[33mcommit 0694b7fb5b5a95099b6673188353cd8170dc07e8[m
+Author: UnSlimShady <148286658+shady0503@users.noreply.github.com>
+Date:   Fri Oct 24 22:34:18 2025 +0100
+
+    Update print statement from 'Hello' to 'Goodbye'
+
+[33mcommit d90918150902f7fb6f6961fa054438f556653dd3[m
+Author: UnSlimShady <148286658+shady0503@users.noreply.github.com>
+Date:   Fri Oct 24 21:53:59 2025 +0100
+
+    Rename MDE.md to readme.md
+
+[33mcommit 2a8c9b913c05ace962a8f04b86e0808330177a50[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Mon Oct 13 21:26:45 2025 +0100
+
+    added MDE.md file
+
+[33mcommit 21b420e5c205738b432d7e18f43edd3460a6f988[m
+Author: shady0503 <j130040516@um5.ac.ma>
+Date:   Mon Oct 13 15:54:45 2025 +0100
+
+    initial commit

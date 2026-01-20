@@ -1,8 +1,8 @@
 package com.mde.validation;
 
-import com.mde.ModelDrivenEngineering.BackendConfig;
-import com.mde.ModelDrivenEngineering.Column;
-import com.mde.ModelDrivenEngineering.Table;
+import ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.Column;
+import ModelDrivenEngineering.Table;
 
 import java.util.ArrayList;
 import java.util.HashSet;

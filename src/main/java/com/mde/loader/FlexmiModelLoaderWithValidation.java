@@ -1,6 +1,6 @@
 package com.mde.loader;
 
-import com.mde.ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.BackendConfig;
 import com.mde.validation.ModelValidationEngine;
 import com.mde.validation.ValidationResult;
 import org.eclipse.emf.common.util.URI;

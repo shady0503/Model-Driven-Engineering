@@ -93,6 +93,14 @@ rule TableToEntityContext
         ec.relations.add(rel);
     }
     
+    // Transform table-level relations (from frontend edges)
+    if (t.relations.isDefined()) {
+        for (rel in t.relations) {
+            var relContext = rel.equivalent("RelationToRelationContext");
+            ec.relations.add(relContext);
+        }
+    }
+    
     // Set hasRelationships flag
     ec.hasRelationships = ec.relations.size() > 0;
     
@@ -105,7 +113,7 @@ rule TableToEntityContext
     // Note: repositoryName, serviceName, controllerName, apiPath 
     // are not in Context.ecore - they will be computed in templates
     
-    // ("Created EntityContext: " + ec.className + " from table: " + t.name).println();
+    ("Created EntityContext: " + ec.className + " from table: " + t.name + " with " + ec.relations.size() + " relations").println();
 }
 
 /*****************************************************************************
@@ -119,7 +127,7 @@ rule ColumnToFieldContext
     transform c : Source!Column
     to fc : Target!FieldContext {
     
-    guard : c.isDefined()
+    guard : c.isDefined() and c.name.isDefined()
     
     // Column metadata
     fc.columnName = c.name;
@@ -181,8 +189,8 @@ rule ColumnWithRelationToRelationContext
         rc.fetchType = "LAZY";
     }
     
-    // Owner flag
-    rc.isOwner = r.type.toString() = "MANY_TO_ONE";
+    // Owner flag (MANY_TO_ONE and MANY_TO_MANY are owners)
+    rc.isOwner = r.type.toString() = "MANY_TO_ONE" or r.type.toString() = "MANY_TO_MANY";
     
     // Field name for the relationship
     // Use the column name to derive field name (e.g., "follower_id" → "follower")
@@ -194,7 +202,7 @@ rule ColumnWithRelationToRelationContext
         rc.fieldName = c.name.toCamelCase();
     }
     
-    // ("Created RelationContext: " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
+    ("Created RelationContext (column-level): " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
 }
 
 /*****************************************************************************
@@ -247,23 +255,26 @@ rule RelationToRelationContext
         rc.fetchType = "LAZY";
     }
     
-    // Owner flag
-    rc.isOwner = r.type.toString() = "MANY_TO_ONE";
+    // Owner flag (MANY_TO_ONE and MANY_TO_MANY are owners)
+    rc.isOwner = r.type.toString() = "MANY_TO_ONE" or r.type.toString() = "MANY_TO_MANY";
     
     // Field name for the relationship
-    // If join column is defined (e.g., "follower_id"), use it to derive field name ("follower")
-    // Otherwise, fall back to singular form of target table name
     if (rc.joinColumnName.isDefined() and rc.joinColumnName.endsWith("_id")) {
-        // Remove "_id" suffix and convert to camelCase
-        // Example: "follower_id" → "follower", "user_id" → "user"
         rc.fieldName = rc.joinColumnName.substring(0, rc.joinColumnName.length() - 3).toCamelCase();
     } else if (rc.joinColumnName.isDefined()) {
         rc.fieldName = rc.joinColumnName.toCamelCase();
     } else {
-        rc.fieldName = targetTableName.singular();
+        rc.fieldName = targetTableName.toCamelCase();
     }
     
-    // ("Created RelationContext: " + rc.relationType + " to " + rc.targetEntity).println();
+    // Consistent pluralization/singularization
+    if (rc.relationType.contains("TO_MANY")) {
+        rc.fieldName = rc.fieldName.plural();
+    } else {
+        rc.fieldName = rc.fieldName.singular();
+    }
+    
+    ("Created RelationContext (table-level): " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
 }
 
 /*****************************************************************************
@@ -327,6 +338,7 @@ operation String toEntityName() : String {
  * Enhanced to handle edge cases like consecutive underscores
  */
 operation String toCamelCase() : String {
+    if (not self.isDefined()) return "";
     var parts = self.split('_');
     
     // Filter out empty parts from consecutive underscores
@@ -522,34 +534,47 @@ operation createInverseRelationships() {
     // Get all entities
     var allEntities = Target!EntityContext.all;
     
-    // For each entity, look at its MANY_TO_ONE relationships
+    // For each entity, look at its MANY_TO_ONE, MANY_TO_MANY and ONE_TO_ONE relationships
     for (entity in allEntities) {
-        for (relation in entity.relations.select(r | r.relationType = "MANY_TO_ONE")) {
+        // Only create inverse for relations that are NOT themselves inverses (don't have mappedBy)
+        for (relation in entity.relations.select(r | (r.relationType = "MANY_TO_ONE" or r.relationType = "MANY_TO_MANY" or r.relationType = "ONE_TO_ONE") and not r.mappedBy.isDefined())) {
             // Find the target entity
             var targetEntity = allEntities.selectOne(e | e.className = relation.targetEntity);
             
             if (targetEntity.isDefined()) {
+                var inverseType = "";
+                if (relation.relationType = "MANY_TO_ONE") {
+                    inverseType = "ONE_TO_MANY";
+                } else if (relation.relationType = "MANY_TO_MANY") {
+                    inverseType = "MANY_TO_MANY";
+                } else if (relation.relationType = "ONE_TO_ONE") {
+                    inverseType = "ONE_TO_ONE";
+                }
+
                 // Check if inverse relationship already exists
                 var existingInverse = targetEntity.relations.selectOne(r | 
-                    r.relationType = "ONE_TO_MANY" and 
+                    r.relationType = inverseType and 
                     r.targetEntity = entity.className and
                     r.mappedBy = relation.fieldName
                 );
                 
                 // Only create if it doesn't exist
                 if (not existingInverse.isDefined()) {
-                    // Create inverse ONE_TO_MANY relationship
+                    // Create inverse relationship
                     var inverseRelation = new Target!RelationContext;
-                    inverseRelation.relationType = "ONE_TO_MANY";
+                    inverseRelation.relationType = inverseType;
                     inverseRelation.targetEntity = entity.className;
                     
-                    // Generate unique field name to avoid collisions
-                    // Strategy: Use plural form of source table + source field name for uniqueness
-                    // Example: for UserFollows.follower → Users, create "followerUserFollowsList"
-                    //          for UserFollows.following → Users, create "followingUserFollowsList"
-                    // This ensures uniqueness even when multiple FKs point to same table
-                    var baseFieldName = entity.tableName.toCamelCase();
-                    var uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase() + "List";
+                    // Generate unique field name
+                    var uniqueFieldName = "";
+                    if (inverseType = "MANY_TO_MANY") {
+                        uniqueFieldName = entity.tableName.toCamelCase().plural();
+                    } else if (inverseType = "ONE_TO_ONE") {
+                        uniqueFieldName = entity.tableName.toCamelCase().singular();
+                    } else {
+                        var baseFieldName = entity.tableName.toCamelCase();
+                        uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase() + "List";
+                    }
                     
                     // Additional check: ensure this name doesn't already exist in target entity
                     var counter = 1;
@@ -697,4 +722,18 @@ operation String singular() : String {
     
     // If none of the above, return as-is (likely already singular or special case)
     return self;
+}
+
+/**
+ * Get plural form of a word
+ */
+operation String plural() : String {
+    if (self.length() <= 1) return self + "s";
+    if (self.endsWith("y") and not self.endsWith("ay") and not self.endsWith("ey") and not self.endsWith("oy") and not self.endsWith("uy")) {
+        return self.substring(0, self.length() - 1) + "ies";
+    }
+    if (self.endsWith("s") or self.endsWith("x") or self.endsWith("ch") or self.endsWith("sh")) {
+        return self + "es";
+    }
+    return self + "s";
 }

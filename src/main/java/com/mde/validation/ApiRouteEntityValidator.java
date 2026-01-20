@@ -1,9 +1,9 @@
 package com.mde.validation;
 
-import com.mde.ModelDrivenEngineering.Api;
-import com.mde.ModelDrivenEngineering.BackendConfig;
-import com.mde.ModelDrivenEngineering.Route;
-import com.mde.ModelDrivenEngineering.Table;
+import ModelDrivenEngineering.Api;
+import ModelDrivenEngineering.BackendConfig;
+import ModelDrivenEngineering.Route;
+import ModelDrivenEngineering.Table;
 
 import java.util.ArrayList;
 import java.util.HashSet;
