@@ -29,7 +29,7 @@ class CodeGeneratorTest {
     void testGeneratorInitialization() {
         // Given/When: Generator is created
         CodeGenerator testGenerator = new CodeGenerator();
-        
+
         // Then: Generator should not be null
         assertNotNull(testGenerator);
     }
@@ -39,7 +39,7 @@ class CodeGeneratorTest {
         // Given: Null YAML file path
         Path yamlFile = null;
         Path outputDir = tempDir.resolve("output");
-        
+
         // When/Then: Should throw exception
         assertThrows(Exception.class, () -> {
             generator.generateProject(yamlFile, outputDir);
@@ -51,7 +51,7 @@ class CodeGeneratorTest {
         // Given: Non-existent YAML file
         Path yamlFile = Paths.get("non-existent.yaml");
         Path outputDir = tempDir.resolve("output");
-        
+
         // When/Then: Should throw exception
         assertThrows(Exception.class, () -> {
             generator.generateProject(yamlFile, outputDir);
@@ -62,10 +62,10 @@ class CodeGeneratorTest {
     void testBlogExampleYamlExists() {
         // Given: Blog example YAML path
         Path blogExample = Paths.get("examples/blog-example.yaml");
-        
+
         // When: Check if file exists
         boolean exists = Files.exists(blogExample);
-        
+
         // Then: File should exist
         assertTrue(exists, "Blog example YAML should exist at: examples/blog-example.yaml");
     }
@@ -74,10 +74,10 @@ class CodeGeneratorTest {
     void testMinimalExampleYamlExists() {
         // Given: Minimal example YAML path
         Path minimalExample = Paths.get("examples/minimal-example.yaml");
-        
+
         // When: Check if file exists
         boolean exists = Files.exists(minimalExample);
-        
+
         // Then: File should exist
         assertTrue(exists, "Minimal example YAML should exist at: examples/minimal-example.yaml");
     }
@@ -86,10 +86,10 @@ class CodeGeneratorTest {
     void testOutputDirectoryCreation() throws Exception {
         // Given: Output directory path
         Path outputDir = tempDir.resolve("test-output");
-        
+
         // When: Directory doesn't exist initially
         assertFalse(Files.exists(outputDir));
-        
+
         // Then: Generator should handle directory creation
         Files.createDirectories(outputDir);
         assertTrue(Files.exists(outputDir));
@@ -99,7 +99,7 @@ class CodeGeneratorTest {
     void testGeneratorHasRequiredComponents() {
         // Given: New generator
         CodeGenerator testGenerator = new CodeGenerator();
-        
+
         // When: Generator is created
         // Then: It should initialize without errors
         assertNotNull(testGenerator, "Generator should be initialized");
@@ -109,10 +109,10 @@ class CodeGeneratorTest {
     void testExamplesDirectoryExists() {
         // Given: Examples directory path
         Path examplesDir = Paths.get("examples");
-        
+
         // When: Check if directory exists
         boolean exists = Files.exists(examplesDir);
-        
+
         // Then: Directory should exist
         assertTrue(exists, "Examples directory should exist");
     }
@@ -121,12 +121,12 @@ class CodeGeneratorTest {
     void testExamplesDirectoryHasYamlFiles() throws Exception {
         // Given: Examples directory
         Path examplesDir = Paths.get("examples");
-        
+
         // When: Count YAML files
         long yamlCount = Files.list(examplesDir)
-            .filter(p -> p.toString().endsWith(".yaml"))
-            .count();
-        
+                .filter(p -> p.toString().endsWith(".yaml"))
+                .count();
+
         // Then: Should have at least one YAML file
         assertTrue(yamlCount > 0, "Examples directory should contain YAML files");
     }
@@ -135,11 +135,11 @@ class CodeGeneratorTest {
     void testPipelineComponentsExist() {
         // Given: Required component classes
         String[] componentClasses = {
-            "com.mde.loader.FlexmiModelLoader",
-            "com.mde.generator.etl.ETLTransformationEngine",
-            "com.mde.generator.egl.EGLTemplateEngine"
+                "com.mde.loader.FlexmiModelLoader",
+                "com.mde.generator.etl.ETLTransformationEngine",
+                "com.mde.generator.egl.EGLTemplateEngine"
         };
-        
+
         // When/Then: Check each component class exists
         for (String className : componentClasses) {
             assertDoesNotThrow(() -> {
@@ -152,10 +152,10 @@ class CodeGeneratorTest {
     void testMetamodelPackagesExist() {
         // Given: Required metamodel packages
         String[] metamodelPackages = {
-            "com.mde.ModelDrivenEngineering.ModelDrivenPackage",
-            "com.mde.generator.Context.ContextPackage"
+                "ModelDrivenEngineering.ModelDrivenEngineeringPackage",
+                "com.mde.generator.Context.ContextPackage"
         };
-        
+
         // When/Then: Check each metamodel package class exists
         for (String packageClass : metamodelPackages) {
             assertDoesNotThrow(() -> {

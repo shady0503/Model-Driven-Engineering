@@ -1,0 +1,53 @@
+BackendConfig:
+  project:
+    Project:
+      name: FullSystem
+      groupId: com.mde.test
+      language: JAVA
+      framework: SPRING_BOOT
+  database:
+    Database:
+      name: full_db
+      type: POSTGRESQL
+      tables:
+        # One-to-One: User <-> Profile
+        - Table:
+            name: users
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: username, type: STRING, unique: true }
+            relations:
+              - Relation:
+                  targetTable: profile
+                  type: ONE_TO_ONE
+        - Table:
+            name: profile
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: bio, type: TEXT }
+            relations:
+
+        # One-To-Many / Many-To-One: User <-> Post
+        - Table:
+            name: post
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: content, type: TEXT }
+              - Column:
+                  name: author_id
+                  type: LONG
+                  relation:
+                    targetTable: users
+                    type: MANY_TO_ONE
+            relations:
+
+        # Many-to-Many: Post <-> Category
+        - Table:
+            name: category
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: name, type: STRING }
+            relations:
+              - Relation:
+                  targetTable: post
+                  type: MANY_TO_MANY
