@@ -3,6 +3,12 @@ package com.mde.generator.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
+import Context.ContextFactory;
+import Context.ProjectContext;
+import Context.EntityContext;
+import Context.FieldContext;
+import Context.RelationContext;
+import Context.DependencyContext;
 
 /**
  * Unit tests for Context metamodel classes

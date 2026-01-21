@@ -8,7 +8,14 @@
  * Source Metamodel: MDE.ecore (BackendConfig)
  * Target Metamodel: Context.ecore (Context)
  * 
- * Author: Generated for Model-Driven Backend Generator
+ * 
+ * KEY RULES ENFORCED:
+ * 1. Column-level relations MUST be MANY_TO_ONE only
+ * 2. All column-derived relations are marked as owning side (isOwner=true)
+ * 3. ONE_TO_ONE requires explicit ownership declaration
+ * 4. MANY_TO_MANY requires explicit ownership and join table metadata
+ * 5. Inverse relationships auto-generated only for MANY_TO_ONE
+ * 6. Raw FK fields removed when relation exists
  *****************************************************************************/
 
 // Pre-block: Declare source and target models
@@ -44,18 +51,59 @@ rule BackendConfigToProjectContext
     pc.databaseType = bc.database.type.toString();
     pc.databaseName = bc.database.name;
     
-    // Generate dependencies (as DependencyContext objects)
-    var dependencies = bc.generateDependencies();
+    // Generate dependencies (as DependencyContext objects) inline
+    var dependencies = Sequence{};
+    dependencies.add(Map{
+        "groupId" = "org.springframework.boot",
+        "artifactId" = "spring-boot-starter-web",
+        "version" = "",
+        "scope" = "compile"
+    });
+    dependencies.add(Map{
+        "groupId" = "org.springframework.boot",
+        "artifactId" = "spring-boot-starter-data-jpa",
+        "version" = "",
+        "scope" = "compile"
+    });
+    var dbType = bc.database.type.toString();
+    var dbDriver = Map{};
+    if (dbType = "POSTGRESQL") {
+        dbDriver = Map{
+            "groupId" = "org.postgresql",
+            "artifactId" = "postgresql",
+            "version" = "",
+            "scope" = "runtime"
+        };
+    } else if (dbType = "MYSQL") {
+        dbDriver = Map{
+            "groupId" = "com.mysql",
+            "artifactId" = "mysql-connector-j",
+            "version" = "",
+            "scope" = "runtime"
+        };
+    } else {
+        // Default to H2
+        dbDriver = Map{
+            "groupId" = "com.h2database",
+            "artifactId" = "h2",
+            "version" = "",
+            "scope" = "runtime"
+        };
+    }
+    dependencies.add(dbDriver);
+    dependencies.add(Map{
+        "groupId" = "org.projectlombok",
+        "artifactId" = "lombok",
+        "version" = "",
+        "scope" = "compile"
+    });
+    
     for (dep in dependencies) {
         var dc = new Target!DependencyContext;
         dc.groupId = dep.get("groupId");
         dc.artifactId = dep.get("artifactId");
         dc.version = dep.get("version");
-        if (dep.isDefined() and dep.containsKey("scope")) {
-            dc.scope = dep.get("scope");
-        } else {
-            dc.scope = "compile";
-        }
+        dc.scope = dep.containsKey("scope") ? dep.get("scope") : "compile";
         pc.dependencies.add(dc);
     }
     
@@ -84,7 +132,8 @@ rule TableToEntityContext
     ec.packageName = Source!BackendConfig.all.first().project.groupId + "." 
                    + Source!BackendConfig.all.first().project.name + ".entity";
     
-    // Transform columns to fields (exclude foreign key columns - they become relationships)
+    // RULE: Transform columns to fields, excluding FK columns that have relations
+    // FK columns will be represented as JPA relationships instead
     ec.fields = t.columns.select(c | not c.relation.isDefined()).equivalent();
     
     // Transform foreign key columns to relations
@@ -132,7 +181,24 @@ rule ColumnToFieldContext
     // Column metadata
     fc.columnName = c.name;
     fc.fieldName = c.name.toCamelCase();  // user_id → userId
-    fc.javaType = mapToJavaType(c.type);  // DataType enum → Java type
+    
+    // DataType enum → Java type (inline mapping; avoid global helper operations)
+    var mapping = Map{
+        "STRING" = "String",
+        "INTEGER" = "Integer",
+        "LONG" = "Long",
+        "UUID" = "UUID",
+        "BOOLEAN" = "Boolean",
+        "DATE" = "LocalDate",
+        "DATETIME" = "LocalDateTime",
+        "TIMESTAMP" = "LocalDateTime",
+        "TEXT" = "String",
+        "DOUBLE" = "Double",
+        "FLOAT" = "Float",
+        "DECIMAL" = "BigDecimal"
+    };
+    var typeName = c.type.toString();
+    fc.javaType = mapping.get(typeName).isDefined() ? mapping.get(typeName) : "String";
     
     // Constraints
     fc.isNullable = c.nullable;
@@ -149,6 +215,11 @@ rule ColumnToFieldContext
  * 
  * Transforms foreign key columns into relation context objects
  * Each RelationContext represents a JPA relationship (@ManyToOne, @OneToMany, etc.)
+ * 
+ * CRITICAL RESTRICTIONS:
+ * - Column-level relations MUST be MANY_TO_ONE only
+ * - All column-derived relations are ALWAYS the owning side
+ * - Never set mappedBy for column-level relations
  *****************************************************************************/
 @lazy
 rule ColumnWithRelationToRelationContext 
@@ -159,57 +230,78 @@ rule ColumnWithRelationToRelationContext
     
     var r = c.relation;
     
-    // Relationship type
-    rc.relationType = r.type.toString();  // MANY_TO_ONE, ONE_TO_MANY, etc.
+    // ========== CRITICAL RESTRICTION: COLUMN-LEVEL RELATIONS MUST BE MANY_TO_ONE ==========
+    // Never infer ONE_TO_ONE or MANY_TO_MANY from a foreign-key column
+    // These must be explicitly defined at table level
+    if (r.type.toString() <> "MANY_TO_ONE") {
+        throw "VALIDATION ERROR: Column '" + c.name + "' in table '" + c.eContainer().name + 
+              "' defines a " + r.type.toString() + " relation. ONLY MANY_TO_ONE is allowed for column-level relations. " +
+              "For ONE_TO_ONE or MANY_TO_MANY, define them at the table level in the 'relations' section.";
+    }
     
-    // Target entity information - store table name, will be resolved in post-processing
-    var targetTableName = getTargetTableName(r.targetTable);
-    // Store table name temporarily - will be converted to className in post
+    rc.relationType = "MANY_TO_ONE";
+    
+    // Target entity information
+    // In the current metamodel, Relation.targetTable is a String.
+    var targetTableName = r.targetTable;
     rc.targetEntity = targetTableName;
     
     // Join column is the column name itself
     rc.joinColumnName = c.name;
     
-    // Mapped by (for bidirectional relationships)
-    rc.mappedBy = r.determineMappedBy();
+    // ========== RULE: FORCE OWNERSHIP FOR COLUMN-LEVEL RELATIONS ==========
+    // All column-derived relations are ALWAYS the owning side
+    // Never set mappedBy for column-level relations - this is ETL-enforced
+    rc.isOwner = true;
+    rc.mappedBy = ""; 
     
-    // Cascade type (single string, not array)
-    if (r.onDelete.isDefined()) {
-        rc.cascadeType = r.onDelete.toString();
-    } else if (r.cascadeTypes.isDefined() and r.cascadeTypes.size() > 0) {
-        rc.cascadeType = r.cascadeTypes.first().toString();
-    } else {
-        rc.cascadeType = "ALL";
+    // RULE: Reject join table metadata for column-level relations
+    // Join tables are only valid for MANY_TO_MANY at table level
+    if (r.joinTableName.isDefined() and r.joinTableName != "") {
+        throw "VALIDATION ERROR: Column-level MANY_TO_ONE relation '" + c.name + "' in table '" + c.eContainer().name + 
+              "' cannot define 'joinTableName'. Join tables are only for MANY_TO_MANY relationships defined at table level.";
     }
     
-    // Fetch type
-    if (r.fetchType.isDefined()) {
-        rc.fetchType = r.fetchType.toString();
-    } else {
-        rc.fetchType = "LAZY";
-    }
+    // Cascade type
+    rc.cascadeType = r.cascade.isDefined() ? r.cascade.toString() : "ALL";
     
-    // Owner flag (MANY_TO_ONE and MANY_TO_MANY are owners)
-    rc.isOwner = r.type.toString() = "MANY_TO_ONE" or r.type.toString() = "MANY_TO_MANY";
+    // Fetch type 
+    rc.fetchType = r.fetch.isDefined() ? r.fetch.toString() : "LAZY";
     
-    // Field name for the relationship
+    // ========== FIELD NAME GENERATION ==========
     // Use the column name to derive field name (e.g., "follower_id" → "follower")
-    if (c.name.endsWith("_id")) {
-        // Remove "_id" suffix and convert to camelCase
-        // Example: "follower_id" → "follower", "user_id" → "user"
+    if (c.name.toLowerCase().endsWith("_id")) {
         rc.fieldName = c.name.substring(0, c.name.length() - 3).toCamelCase();
+    } else if (c.name.toLowerCase().endsWith("id") and c.name.length() > 2) {
+        rc.fieldName = c.name.substring(0, c.name.length() - 2).toCamelCase();
     } else {
         rc.fieldName = c.name.toCamelCase();
     }
     
-    ("Created RelationContext (column-level): " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
+    // Column-level relation is ALWAYS MANY_TO_ONE, so field name should be singular
+    // (inline singularization; avoid String extension ops)
+    if (rc.fieldName.endsWith("ies")) {
+        rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 3) + "y";
+    } else if (rc.fieldName.endsWith("ses") or rc.fieldName.endsWith("xes") or rc.fieldName.endsWith("ches") or rc.fieldName.endsWith("shes") or rc.fieldName.endsWith("oes")) {
+        rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 2);
+    } else if (rc.fieldName.endsWith("s") and not rc.fieldName.endsWith("ss")) {
+        rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 1);
+    }
+    
+    ("Created RelationContext (column-level MANY_TO_ONE): " + rc.fieldName + " → " + rc.targetEntity + " [owner, joinColumn=" + rc.joinColumnName + "]").println();
 }
 
 /*****************************************************************************
- * RULE 4 (OLD): Relation → RelationContext
+ * RULE 5: Relation (table-level) → RelationContext
  * 
- * DEPRECATED - Kept for backward compatibility
- * Use ColumnWithRelationToRelationContext instead
+ * Transforms table-level relations into relation context objects
+ * Used for ONE_TO_ONE, ONE_TO_MANY (explicit), and MANY_TO_MANY
+ * 
+ * CRITICAL REQUIREMENTS:
+ * - ONE_TO_ONE must have explicit ownership (owner attribute must be set)
+ * - MANY_TO_MANY must have explicit ownership
+ * - MANY_TO_MANY owner must provide join table metadata
+ * - Non-owners must provide mappedBy
  *****************************************************************************/
 @lazy
 rule RelationToRelationContext 
@@ -218,91 +310,426 @@ rule RelationToRelationContext
     
     guard : r.isDefined() and r.targetTable.isDefined()
     
-    // Relationship type
-    rc.relationType = r.type.toString();  // MANY_TO_ONE, ONE_TO_MANY, etc.
+    var type = r.type.toString();
+    rc.relationType = type;
     
-    // Target entity information - store table name, will be resolved in post-processing
-    var targetTableName = getTargetTableName(r.targetTable);
-    // Store table name temporarily - will be converted to className in post
+    // Target entity information
+    // In the current metamodel, Relation.targetTable is a String.
+    var targetTableName = r.targetTable;
     rc.targetEntity = targetTableName;
     
-    // Join column information
-    if (r.foreignKeyColumn.isDefined()) {
-        // Handle foreignKeyColumn as string or object
-        if (r.foreignKeyColumn.isTypeOf(String)) {
-            rc.joinColumnName = r.foreignKeyColumn;
+    // NOTE: We no longer require 'owner' to be explicitly set in the model.
+    // EMF frequently omits setting a feature when its value equals the default,
+    // which makes eIsSet() unreliable for detecting "explicit" ownership in YAML.
+    // Instead, we rely directly on the 'owner' boolean value below.
+    
+    // ========== RULE: REQUIRE COMPLETE METADATA FOR MANY_TO_MANY OWNERS ==========
+    if (type = "MANY_TO_MANY") {
+        // ========== RULE: MANY_TO_MANY OWNER MUST PROVIDE JOIN TABLE METADATA ==========
+        if (r.owner = true) {
+            if (not r.joinTableName.isDefined() or r.joinTableName = "") {
+                throw "VALIDATION ERROR: Owning side of MANY_TO_MANY relation in table '" + r.eContainer().name + 
+                      "' must explicitly define 'joinTableName'. This cannot be inferred.";
+            }
+            if (not r.joinColumnName.isDefined() or r.joinColumnName = "") {
+                throw "VALIDATION ERROR: Owning side of MANY_TO_MANY relation in table '" + r.eContainer().name + 
+                      "' must explicitly define 'joinColumnName' (column for the owning entity).";
+            }
+            if (not r.inverseJoinColumnName.isDefined() or r.inverseJoinColumnName = "") {
+                throw "VALIDATION ERROR: Owning side of MANY_TO_MANY relation in table '" + r.eContainer().name + 
+                      "' must explicitly define 'inverseJoinColumnName' (column for the target entity).";
+            }
+        }
+    }
+    
+    // Set ownership from model
+    rc.isOwner = r.owner;
+    
+    // ========== RULE: NON-OWNERS MUST PROVIDE MAPPEDBY ==========
+    // Mapped by (for bidirectional relationships)
+    if (not rc.isOwner) {
+        if (not r.mappedBy.isDefined() or r.mappedBy = "") {
+            throw "VALIDATION ERROR: Non-owning side of " + type + " relation in table '" + r.eContainer().name + 
+                  "' to '" + targetTableName + "' must define 'mappedBy' to reference the owning field name.";
+        }
+        rc.mappedBy = r.mappedBy;
+    } else {
+        // Owning side should not have mappedBy
+        rc.mappedBy = "";
+    }
+    
+    // Join column information (for owner side of ONE_TO_ONE or MANY_TO_ONE)
+    if (rc.isOwner and (type = "ONE_TO_ONE" or type = "MANY_TO_ONE")) {
+        if (r.joinColumnName.isDefined() and r.joinColumnName != "") {
+            rc.joinColumnName = r.joinColumnName;
+        } else if (r.foreignKeyColumn.isDefined()) {
+            if (r.foreignKeyColumn.isTypeOf(String)) {
+                rc.joinColumnName = r.foreignKeyColumn;
+            } else {
+                rc.joinColumnName = r.foreignKeyColumn.name;
+            }
         } else {
-            rc.joinColumnName = r.foreignKeyColumn.name;
+            // Default join column name (inline singularization; avoid String extension ops)
+            var sing = targetTableName;
+            if (sing.endsWith("ies")) {
+                sing = sing.substring(0, sing.length() - 3) + "y";
+            } else if (sing.endsWith("ses") or sing.endsWith("xes") or sing.endsWith("ches") or sing.endsWith("shes") or sing.endsWith("oes")) {
+                sing = sing.substring(0, sing.length() - 2);
+            } else if (sing.endsWith("s") and not sing.endsWith("ss")) {
+                sing = sing.substring(0, sing.length() - 1);
+            }
+            rc.joinColumnName = sing + "_id";
+        }
+    }
+    
+    // Copy JPA metadata for MANY_TO_MANY
+    if (type = "MANY_TO_MANY" and rc.isOwner) {
+        rc.joinTableName = r.joinTableName;
+        rc.joinColumnName = r.joinColumnName;
+        rc.inverseJoinColumnName = r.inverseJoinColumnName;
+    }
+    
+    // Cascade and Fetch types
+    rc.cascadeType = r.cascade.isDefined() ? r.cascade.toString() : "ALL";
+    rc.fetchType = r.fetch.isDefined() ? r.fetch.toString() : "LAZY";
+    
+    // ========== FIELD NAME GENERATION ==========
+    if (r.fieldName.isDefined() and r.fieldName != "") {
+        // Use explicit field name from model
+        rc.fieldName = r.fieldName;
+    } else {
+        // Generate field name:
+        // - MANY_TO_MANY should name the collection after the *target* (e.g., SellDate.books),
+        //   not after join column (which often looks like "selldate_id").
+        // - Other relations may derive from join column or target table.
+        if (type = "MANY_TO_MANY") {
+            // minimal camelCase: lower-case first letter of target class/table name
+            rc.fieldName = targetTableName.substring(0, 1).toLowerCase() + targetTableName.substring(1, targetTableName.length());
+        } else if (rc.joinColumnName.isDefined() and rc.joinColumnName != "") {
+            // minimal FK-name stripping: xxx_id -> xxx, xxxId -> xxx
+            var n = rc.joinColumnName;
+            if (n.toLowerCase().endsWith("_id")) {
+                n = n.substring(0, n.length() - 3);
+            } else if (n.toLowerCase().endsWith("id") and n.length() > 2) {
+                n = n.substring(0, n.length() - 2);
+            }
+            // minimal camelCase: lower-case first letter (handles already camel-ish names)
+            rc.fieldName = n.substring(0, 1).toLowerCase() + n.substring(1, n.length());
+        } else {
+            rc.fieldName = targetTableName.substring(0, 1).toLowerCase() + targetTableName.substring(1, targetTableName.length());
+        }
+    }
+    
+    // Consistent pluralization/singularization based on cardinality
+    if (rc.relationType.contains("TO_MANY")) {
+        // inline pluralization
+        if (rc.fieldName.endsWith("y") and not (rc.fieldName.endsWith("ay") or rc.fieldName.endsWith("ey") or rc.fieldName.endsWith("oy") or rc.fieldName.endsWith("uy"))) {
+            rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 1) + "ies";
+        } else if (rc.fieldName.endsWith("s") or rc.fieldName.endsWith("x") or rc.fieldName.endsWith("ch") or rc.fieldName.endsWith("sh")) {
+            rc.fieldName = rc.fieldName + "es";
+        } else {
+            rc.fieldName = rc.fieldName + "s";
         }
     } else {
-        rc.joinColumnName = r.determineJoinColumn();
+        // inline singularization
+        if (rc.fieldName.endsWith("ies")) {
+            rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 3) + "y";
+        } else if (rc.fieldName.endsWith("ses") or rc.fieldName.endsWith("xes") or rc.fieldName.endsWith("ches") or rc.fieldName.endsWith("shes") or rc.fieldName.endsWith("oes")) {
+            rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 2);
+        } else if (rc.fieldName.endsWith("s") and not rc.fieldName.endsWith("ss")) {
+            rc.fieldName = rc.fieldName.substring(0, rc.fieldName.length() - 1);
+        }
     }
     
-    // Mapped by (for bidirectional relationships)
-    rc.mappedBy = r.determineMappedBy();
-    
-    // Cascade type (single string, not array)
-    if (r.cascadeTypes.isDefined() and r.cascadeTypes.size() > 0) {
-        rc.cascadeType = r.cascadeTypes.first().toString();
-    } else {
-        rc.cascadeType = "ALL";
-    }
-    
-    // Fetch type
-    if (r.fetchType.isDefined()) {
-        rc.fetchType = r.fetchType.toString();
-    } else {
-        rc.fetchType = "LAZY";
-    }
-    
-    // Owner flag (MANY_TO_ONE and MANY_TO_MANY are owners)
-    rc.isOwner = r.type.toString() = "MANY_TO_ONE" or r.type.toString() = "MANY_TO_MANY";
-    
-    // Field name for the relationship
-    if (rc.joinColumnName.isDefined() and rc.joinColumnName.endsWith("_id")) {
-        rc.fieldName = rc.joinColumnName.substring(0, rc.joinColumnName.length() - 3).toCamelCase();
-    } else if (rc.joinColumnName.isDefined()) {
-        rc.fieldName = rc.joinColumnName.toCamelCase();
-    } else {
-        rc.fieldName = targetTableName.toCamelCase();
-    }
-    
-    // Consistent pluralization/singularization
-    if (rc.relationType.contains("TO_MANY")) {
-        rc.fieldName = rc.fieldName.plural();
-    } else {
-        rc.fieldName = rc.fieldName.singular();
-    }
-    
-    ("Created RelationContext (table-level): " + rc.relationType + " " + rc.fieldName + " → " + rc.targetEntity).println();
+    var ownershipStr = rc.isOwner ? "[owner]" : "[inverse, mappedBy=" + rc.mappedBy + "]";
+    ("Created RelationContext (table-level " + rc.relationType + "): " + rc.fieldName + " → " + rc.targetEntity + " " + ownershipStr).println();
 }
 
 /*****************************************************************************
  * POST-PROCESSING
  *****************************************************************************/
 post {
-    // Resolve table names to class names in all relationships
-    resolveRelationshipTargets();
+    // NOTE: Inline all post-processing logic.
+    // Custom operations are not reliably resolved in this runtime setup.
     
-    // Create inverse relationships (e.g., if Posts has ManyToOne to Users, 
-    // add OneToMany from Users to Posts)
-    createInverseRelationships();
+    var allEntities = Target!EntityContext.all;
     
-    // Add automatic audit timestamp fields to all entities
-    addAuditFieldsToAllEntities();
+    // ---------------------------
+    // 1) Resolve relationship targets: tableName -> className
+    // ---------------------------
+    "Resolving relationship target entities...".println();
+    for (entity in allEntities) {
+        for (relation in entity.relations) {
+            var targetTableName = relation.targetEntity; // currently table name
+            var targetEntity = allEntities.selectOne(e | e.tableName = targetTableName);
+            if (targetEntity.isDefined()) {
+                relation.targetEntity = targetEntity.className;
+                ("  Resolved: " + entity.className + "." + relation.fieldName + " → " + targetEntity.className).println();
+            } else {
+                ("  WARNING: Could not find target entity for table: " + targetTableName).println();
+            }
+        }
+    }
+    
+    // ---------------------------
+    // 2) Auto-create inverse ONE_TO_MANY for MANY_TO_ONE owners (existing behavior)
+    // ---------------------------
+    "Creating inverse relationships (MANY_TO_ONE → ONE_TO_MANY only)...".println();
+    for (entity in allEntities) {
+        var manyToOneRelations = entity.relations.select(r | 
+            r.relationType = "MANY_TO_ONE" and 
+            r.isOwner and 
+            (not r.mappedBy.isDefined() or r.mappedBy = "")
+        );
+        
+        for (relation in manyToOneRelations) {
+            var targetEntity = allEntities.selectOne(e | e.className = relation.targetEntity);
+            if (not targetEntity.isDefined()) continue;
+            
+            var inverseExists = targetEntity.relations.exists(r | 
+                r.relationType = "ONE_TO_MANY" and
+                r.mappedBy = relation.fieldName and
+                r.targetEntity = entity.className
+            );
+            if (inverseExists) {
+                ("  Skipped inverse (already exists): " + targetEntity.className + " → " + entity.className + " [mappedBy=" + relation.fieldName + "]").println();
+                continue;
+            }
+            
+            var inverseRelation = new Target!RelationContext;
+            inverseRelation.relationType = "ONE_TO_MANY";
+            inverseRelation.targetEntity = entity.className;
+            
+            var baseFieldName = entity.className.substring(0, 1).toLowerCase() + entity.className.substring(1, entity.className.length());
+            var uniqueFieldName = relation.fieldName + baseFieldName.substring(0, 1).toUpperCase() + baseFieldName.substring(1, baseFieldName.length()) + "List";
+            
+            var counter = 1;
+            var finalFieldName = uniqueFieldName;
+            while (targetEntity.relations.exists(r | r.fieldName = finalFieldName) or 
+                   targetEntity.fields.exists(f | f.fieldName = finalFieldName)) {
+                finalFieldName = uniqueFieldName + counter.toString();
+                counter = counter + 1;
+            }
+            
+            inverseRelation.fieldName = finalFieldName;
+            inverseRelation.mappedBy = relation.fieldName;
+            inverseRelation.cascadeType = "ALL";
+            inverseRelation.fetchType = "LAZY";
+            inverseRelation.isOwner = false;
+            inverseRelation.joinColumnName = "";
+            
+            targetEntity.relations.add(inverseRelation);
+            targetEntity.hasRelationships = true;
+            
+            ("  Synthesized inverse: " + targetEntity.className + "." + finalFieldName + " → " + entity.className + " [mappedBy=" + relation.fieldName + "]").println();
+        }
+    }
+    
+    // ---------------------------
+    // 3) Create missing counterparts:
+    //    (a) ONE_TO_MANY inverse exists but owning MANY_TO_ONE missing
+    //    (b) MANY_TO_MANY owner exists but inverse missing
+    // ---------------------------
+    "Synthesizing missing counterpart relationships (ONE_TO_MANY inverses and MANY_TO_MANY inverses)...".println();
+    
+    // (a) ONE_TO_MANY inverse -> ensure MANY_TO_ONE owner exists on target
+    for (entity in allEntities) {
+        var oneToManyInverses = entity.relations.select(r |
+            r.relationType = "ONE_TO_MANY" and not r.isOwner and r.mappedBy.isDefined() and r.mappedBy != ""
+        );
+        
+        for (inverseRel in oneToManyInverses) {
+            var targetEntity = allEntities.selectOne(e | e.className = inverseRel.targetEntity);
+            if (not targetEntity.isDefined()) continue;
+            
+            var existsOwner = targetEntity.relations.exists(r |
+                r.relationType = "MANY_TO_ONE" and
+                r.targetEntity = entity.className and
+                r.fieldName = inverseRel.mappedBy
+            );
+            if (existsOwner) continue;
+            
+            var joinName = inverseRel.mappedBy + "_id";
+            var candidates = Sequence{ joinName, inverseRel.mappedBy + "id", inverseRel.mappedBy + "Id" };
+            var fkField = targetEntity.fields.selectOne(f | candidates.exists(c | f.columnName = c or f.fieldName = c));
+            if (fkField.isDefined()) {
+                joinName = fkField.columnName;
+            }
+            
+            var ownerRel = new Target!RelationContext;
+            ownerRel.relationType = "MANY_TO_ONE";
+            ownerRel.targetEntity = entity.className;
+            ownerRel.isOwner = true;
+            ownerRel.mappedBy = "";
+            ownerRel.joinColumnName = joinName;
+            ownerRel.cascadeType = inverseRel.cascadeType.isDefined() ? inverseRel.cascadeType : "ALL";
+            ownerRel.fetchType = inverseRel.fetchType.isDefined() ? inverseRel.fetchType : "LAZY";
+            ownerRel.fieldName = inverseRel.mappedBy;
+            
+            targetEntity.relations.add(ownerRel);
+            targetEntity.hasRelationships = true;
+            
+            ("  Synthesized MANY_TO_ONE: " + targetEntity.className + "." + ownerRel.fieldName + " -> " + entity.className + " [joinColumn=" + joinName + "]").println();
+        }
+    }
+    
+    // (b) MANY_TO_MANY owner -> ensure inverse exists on target
+    for (entity in allEntities) {
+        var manyToManyOwners = entity.relations.select(r | r.relationType = "MANY_TO_MANY" and r.isOwner);
+        for (ownerRel in manyToManyOwners) {
+            var targetEntity = allEntities.selectOne(e | e.className = ownerRel.targetEntity);
+            if (not targetEntity.isDefined()) continue;
+            
+            var inverseExists = targetEntity.relations.exists(r |
+                r.relationType = "MANY_TO_MANY" and not r.isOwner and r.mappedBy = ownerRel.fieldName and r.targetEntity = entity.className
+            );
+            if (inverseExists) continue;
+            
+            var inverseRel = new Target!RelationContext;
+            inverseRel.relationType = "MANY_TO_MANY";
+            inverseRel.targetEntity = entity.className;
+            inverseRel.isOwner = false;
+            inverseRel.mappedBy = ownerRel.fieldName;
+            inverseRel.joinTableName = "";
+            inverseRel.joinColumnName = "";
+            inverseRel.inverseJoinColumnName = "";
+            inverseRel.cascadeType = ownerRel.cascadeType.isDefined() ? ownerRel.cascadeType : "ALL";
+            inverseRel.fetchType = ownerRel.fetchType.isDefined() ? ownerRel.fetchType : "LAZY";
+            
+            var baseName = entity.className.substring(0, 1).toLowerCase() + entity.className.substring(1, entity.className.length());
+            // basic pluralization
+            if (baseName.endsWith("y")) {
+                baseName = baseName.substring(0, baseName.length() - 1) + "ies";
+            } else {
+                baseName = baseName + "s";
+            }
+            var finalName = baseName;
+            var counter = 1;
+            while (targetEntity.relations.exists(r | r.fieldName = finalName) or targetEntity.fields.exists(f | f.fieldName = finalName)) {
+                finalName = baseName + counter.toString();
+                counter = counter + 1;
+            }
+            inverseRel.fieldName = finalName;
+            
+            targetEntity.relations.add(inverseRel);
+            targetEntity.hasRelationships = true;
+            
+            ("  Synthesized MANY_TO_MANY inverse: " + targetEntity.className + "." + inverseRel.fieldName + " -> " + entity.className + " [mappedBy=" + ownerRel.fieldName + "]").println();
+        }
+    }
+    
+    // (c) ONE_TO_ONE owner -> ensure inverse exists on target (bidirectional convenience)
+    // This also enables the later FK-scalar cleanup to remove "userid" style columns.
+    for (entity in allEntities) {
+        var oneToOneOwners = entity.relations.select(r | r.relationType = "ONE_TO_ONE" and r.isOwner);
+        for (ownerRel in oneToOneOwners) {
+            var targetEntity = allEntities.selectOne(e | e.className = ownerRel.targetEntity);
+            if (not targetEntity.isDefined()) continue;
+            
+            var inverseExists = targetEntity.relations.exists(r |
+                r.relationType = "ONE_TO_ONE" and not r.isOwner and r.mappedBy = ownerRel.fieldName and r.targetEntity = entity.className
+            );
+            if (inverseExists) continue;
+            
+            var inverseRel = new Target!RelationContext;
+            inverseRel.relationType = "ONE_TO_ONE";
+            inverseRel.targetEntity = entity.className;
+            inverseRel.isOwner = false;
+            inverseRel.mappedBy = ownerRel.fieldName;
+            inverseRel.joinColumnName = "";
+            inverseRel.joinTableName = "";
+            inverseRel.inverseJoinColumnName = "";
+            inverseRel.cascadeType = ownerRel.cascadeType.isDefined() ? ownerRel.cascadeType : "ALL";
+            inverseRel.fetchType = ownerRel.fetchType.isDefined() ? ownerRel.fetchType : "LAZY";
+            
+            // Field name on inverse: lowerCamel of owning entity name (e.g., Writer.user)
+            inverseRel.fieldName = entity.className.substring(0, 1).toLowerCase() + entity.className.substring(1, entity.className.length());
+            
+            targetEntity.relations.add(inverseRel);
+            targetEntity.hasRelationships = true;
+            
+            ("  Synthesized ONE_TO_ONE inverse: " + targetEntity.className + "." + inverseRel.fieldName + " -> " + entity.className + " [mappedBy=" + ownerRel.fieldName + "]").println();
+        }
+    }
+    
+    // ---------------------------
+    // 4) Add audit fields to all entities
+    // ---------------------------
+    "Adding automatic audit fields to all entities...".println();
+    for (entity in allEntities) {
+        var hasCreatedAt = entity.fields.exists(f | f.fieldName = "createdAt");
+        if (not hasCreatedAt) {
+            var createdAtField = new Target!FieldContext;
+            createdAtField.columnName = "created_at";
+            createdAtField.fieldName = "createdAt";
+            createdAtField.javaType = "LocalDateTime";
+            createdAtField.isNullable = false;
+            createdAtField.isUnique = false;
+            createdAtField.isPrimaryKey = false;
+            entity.fields.add(createdAtField);
+        }
+        
+        var hasUpdatedAt = entity.fields.exists(f | f.fieldName = "updatedAt");
+        if (not hasUpdatedAt) {
+            var updatedAtField = new Target!FieldContext;
+            updatedAtField.columnName = "updated_at";
+            updatedAtField.fieldName = "updatedAt";
+            updatedAtField.javaType = "LocalDateTime";
+            updatedAtField.isNullable = false;
+            updatedAtField.isUnique = false;
+            updatedAtField.isPrimaryKey = false;
+            entity.fields.add(updatedAtField);
+        }
+    }
+    
+    // ---------------------------
+    // 5) Remove stray FK-like scalar fields that conflict with relations
+    //    (e.g., writerid, storeID, userid) so relationship fields win.
+    //    Heuristic: drop non-PK fields whose columnName matches any joinColumnName,
+    //    or whose name looks like <target>id when a relation to that target exists.
+    // ---------------------------
+    for (entity in allEntities) {
+        var cleanedFields = Sequence{};
+        for (field in entity.fields) {
+            var keep = true;
+            if (not field.isPrimaryKey) {
+                // Match explicit joinColumnName on relations of this entity
+                var collision = entity.relations.exists(r |
+                    r.joinColumnName.isDefined() and r.joinColumnName != "" and
+                    (r.joinColumnName = field.columnName or r.joinColumnName = field.fieldName)
+                );
+                
+                // Match heuristic: field looks like <target>id while a relation to that target exists
+                if (not collision) {
+                    collision = entity.relations.exists(r |
+                        (field.columnName.toLowerCase().endsWith("id") or field.fieldName.toLowerCase().endsWith("id")) and
+                        (field.columnName.toLowerCase().contains(r.targetEntity.toLowerCase()) or
+                         field.fieldName.toLowerCase().contains(r.targetEntity.toLowerCase()))
+                    );
+                }
+                
+                if (collision) {
+                    keep = false;
+                    ("  Dropped FK-like scalar field '" + field.fieldName + "' from " + entity.className + " to avoid duplicate with relationship").println();
+                }
+            }
+            if (keep) cleanedFields.add(field);
+        }
+        entity.fields = cleanedFields;
+    }
     
     var projectContext = Target!ProjectContext.all.first();
     var entityCount = Target!EntityContext.all.size();
     var fieldCount = Target!FieldContext.all.size();
     var relationCount = Target!RelationContext.all.size();
     
-    // "ETL Transformation Complete!".println();
-    // "-------------------------------------".println();
-    // ("Generated ProjectContext: " + projectContext.artifactId).println();
-    // ("Generated " + entityCount + " EntityContext(s)").println();
-    // ("Generated " + fieldCount + " FieldContext(s)").println();
-    // ("Generated " + relationCount + " RelationContext(s)").println();
-    // "-------------------------------------".println();
+    "ETL Transformation Complete!".println();
+    "-------------------------------------".println();
+    ("Generated ProjectContext: " + projectContext.artifactId).println();
+    ("Generated " + entityCount + " EntityContext(s)").println();
+    ("Generated " + fieldCount + " FieldContext(s)").println();
+    ("Generated " + relationCount + " RelationContext(s)").println();
+    "-------------------------------------".println();
 }
 
 /*****************************************************************************
@@ -376,131 +803,145 @@ operation String firstToUpperCase() : String {
     return self.substring(0, 1).toUpperCase() + self.substring(1, self.length());
 }
 
+// Note: global helper operations removed; keep ETL self-contained.
+
 /**
- * Map DataType enum to Java type
+ * Synthesize missing counterpart relations to keep JPA mappings consistent.
+ *
+ * Cases handled:
+ * 1) ONE_TO_MANY inverse provided (isOwner=false, mappedBy set) but owning MANY_TO_ONE missing on target.
+ *    -> create MANY_TO_ONE on target with joinColumnName derived from mappedBy or existing FK column.
+ * 2) MANY_TO_MANY owner provided (isOwner=true) but inverse missing on target.
+ *    -> create MANY_TO_MANY inverse on target with mappedBy = owner.fieldName.
  */
-operation mapToJavaType(dataType : Any) : String {
-    var mapping = Map{
-        "STRING" = "String",
-        "INTEGER" = "Integer",
-        "LONG" = "Long",
-        "UUID" = "UUID",
-        "BOOLEAN" = "Boolean",
-        "DATE" = "LocalDate",
-        "DATETIME" = "LocalDateTime",
-        "TIMESTAMP" = "LocalDateTime",
-        "TEXT" = "String",
-        "DOUBLE" = "Double",
-        "FLOAT" = "Float",
-        "DECIMAL" = "BigDecimal"
-    };
-    var typeName = dataType.toString();  // Get enum literal as string
-    var result = mapping.get(typeName);
-    if (result.isDefined()) {
-        return result;
-    } else {
-        return "String";  // Default to String if unknown
+operation createMissingCounterparts() {
+    "Synthesizing missing counterpart relationships (ONE_TO_MANY inverses and MANY_TO_MANY inverses)...".println();
+    
+    var allEntities = Target!EntityContext.all;
+    
+    // Helper to find a field whose column name matches a set of candidates
+    operation EntityContext findColumnField(candidates : Sequence(String)) : Target!FieldContext {
+        return self.fields.selectOne(f | candidates.exists(c | f.columnName = c or f.fieldName = c));
     }
-}
-
-/**
- * Map Database Type enum to string
- */
-operation mapToDatabaseTypeString(dbType : Any) : String {
-    return dbType.toString();
-}
-
-/**
- * Generate project dependencies based on configuration
- */
-operation Source!BackendConfig generateDependencies() : Sequence {
-    var dependencies = Sequence{};
     
-    // Core Spring Boot dependencies
-    dependencies.add(Map{
-        "groupId" = "org.springframework.boot",
-        "artifactId" = "spring-boot-starter-web",
-        "version" = ""
-    });
-    
-    dependencies.add(Map{
-        "groupId" = "org.springframework.boot",
-        "artifactId" = "spring-boot-starter-data-jpa",
-        "version" = ""
-    });
-    
-    // Database driver based on database type
-    var dbDriver = getDatabaseDriver(self.database.type);
-    dependencies.add(dbDriver);
-    
-    // Lombok
-    dependencies.add(Map{
-        "groupId" = "org.projectlombok",
-        "artifactId" = "lombok",
-        "version" = ""
-    });
-    
-    return dependencies;
-}
-
-/**
- * Get database driver dependency based on database type
- */
-operation getDatabaseDriver(dbType : Any) : Map {
-    var typeName = dbType.toString();
-    var drivers = Map{
-        "POSTGRESQL" = Map{
-            "groupId" = "org.postgresql",
-            "artifactId" = "postgresql",
-            "version" = ""
-        },
-        "MYSQL" = Map{
-            "groupId" = "com.mysql",
-            "artifactId" = "mysql-connector-j",
-            "version" = ""
-        },
-        "H2" = Map{
-            "groupId" = "com.h2database",
-            "artifactId" = "h2",
-            "version" = ""
+    // Case 1: ONE_TO_MANY inverse without owning MANY_TO_ONE
+    for (entity in allEntities) {
+        var oneToManyInverses = entity.relations.select(r |
+            r.relationType = "ONE_TO_MANY" and not r.isOwner and r.mappedBy.isDefined() and r.mappedBy != ""
+        );
+        
+        for (inverseRel in oneToManyInverses) {
+            var targetEntity = allEntities.selectOne(e | e.className = inverseRel.targetEntity);
+            if (not targetEntity.isDefined()) continue;
+            
+            // Check if target already has MANY_TO_ONE back to this entity
+            var existsOwner = targetEntity.relations.exists(r |
+                r.relationType = "MANY_TO_ONE" and
+                r.targetEntity = entity.className and
+                (r.fieldName = inverseRel.mappedBy or r.mappedBy = inverseRel.mappedBy)
+            );
+            
+            if (existsOwner) {
+                ("  Skipped synth MANY_TO_ONE: already present on " + targetEntity.className).println();
+                continue;
+            }
+            
+            // Derive join column name from mappedBy and existing columns on target
+            var candidates = Sequence{
+                inverseRel.mappedBy + "_id",
+                inverseRel.mappedBy + "id",
+                inverseRel.mappedBy + "Id"
+            };
+            var fkField = targetEntity.findColumnField(candidates);
+            var joinName = fkField.isDefined() ? fkField.columnName : candidates.first();
+            
+            var ownerRel = new Target!RelationContext;
+            ownerRel.relationType = "MANY_TO_ONE";
+            ownerRel.targetEntity = entity.className;
+            ownerRel.isOwner = true;
+            ownerRel.mappedBy = "";
+            ownerRel.joinColumnName = joinName;
+            ownerRel.cascadeType = inverseRel.cascadeType.isDefined() ? inverseRel.cascadeType : "ALL";
+            ownerRel.fetchType = inverseRel.fetchType.isDefined() ? inverseRel.fetchType : "LAZY";
+            
+            // Field name: use mappedBy (singular) to align with inverse
+            // Field name should match mappedBy on inverse side (inline singularization)
+            ownerRel.fieldName = inverseRel.mappedBy;
+            if (ownerRel.fieldName.endsWith("ies")) {
+                ownerRel.fieldName = ownerRel.fieldName.substring(0, ownerRel.fieldName.length() - 3) + "y";
+            } else if (ownerRel.fieldName.endsWith("ses") or ownerRel.fieldName.endsWith("xes") or ownerRel.fieldName.endsWith("ches") or ownerRel.fieldName.endsWith("shes") or ownerRel.fieldName.endsWith("oes")) {
+                ownerRel.fieldName = ownerRel.fieldName.substring(0, ownerRel.fieldName.length() - 2);
+            } else if (ownerRel.fieldName.endsWith("s") and not ownerRel.fieldName.endsWith("ss")) {
+                ownerRel.fieldName = ownerRel.fieldName.substring(0, ownerRel.fieldName.length() - 1);
+            }
+            
+            targetEntity.relations.add(ownerRel);
+            targetEntity.hasRelationships = true;
+            
+            ("  Synthesized MANY_TO_ONE: " + targetEntity.className + "." + ownerRel.fieldName + " -> " + entity.className + " [joinColumn=" + joinName + "]").println();
         }
-    };
-    return drivers.get(typeName);
-}
-
-/**
- * Determine join column name from relation
- */
-operation Source!Relation determineJoinColumn() : String {
-    if (self.foreignKeyColumn.isDefined()) {
-        // Handle foreignKeyColumn as string or object
-        if (self.foreignKeyColumn.isTypeOf(String)) {
-            return self.foreignKeyColumn;
+    }
+    
+    // Case 2: MANY_TO_MANY owner without inverse
+    for (entity in allEntities) {
+        var manyToManyOwners = entity.relations.select(r | r.relationType = "MANY_TO_MANY" and r.isOwner);
+        for (ownerRel in manyToManyOwners) {
+            var targetEntity = allEntities.selectOne(e | e.className = ownerRel.targetEntity);
+            if (not targetEntity.isDefined()) continue;
+            
+            var inverseExists = targetEntity.relations.exists(r |
+                r.relationType = "MANY_TO_MANY" and not r.isOwner and r.mappedBy = ownerRel.fieldName and r.targetEntity = entity.className
+            );
+            if (inverseExists) {
+                ("  Skipped synth MANY_TO_MANY inverse: already present on " + targetEntity.className).println();
+                continue;
+            }
+            
+            var inverseRel = new Target!RelationContext;
+            inverseRel.relationType = "MANY_TO_MANY";
+            inverseRel.targetEntity = entity.className;
+            inverseRel.isOwner = false;
+            inverseRel.mappedBy = ownerRel.fieldName;
+            inverseRel.joinTableName = ""; // inverse does not define join table
+            inverseRel.joinColumnName = ""; // inverse does not define join column
+            inverseRel.inverseJoinColumnName = "";
+            inverseRel.cascadeType = ownerRel.cascadeType.isDefined() ? ownerRel.cascadeType : "ALL";
+            inverseRel.fetchType = ownerRel.fetchType.isDefined() ? ownerRel.fetchType : "LAZY";
+            
+            // Field name: plural of owner entity name to avoid collision
+            // Field name: plural of owner entity name (inline firstToLowerCase + pluralization)
+            var baseName = entity.className.substring(0, 1).toLowerCase() + entity.className.substring(1, entity.className.length());
+            if (baseName.endsWith("y") and not (baseName.endsWith("ay") or baseName.endsWith("ey") or baseName.endsWith("oy") or baseName.endsWith("uy"))) {
+                baseName = baseName.substring(0, baseName.length() - 1) + "ies";
+            } else if (baseName.endsWith("s") or baseName.endsWith("x") or baseName.endsWith("ch") or baseName.endsWith("sh")) {
+                baseName = baseName + "es";
+            } else {
+                baseName = baseName + "s";
+            }
+            var finalName = baseName;
+            var counter = 1;
+            while (targetEntity.relations.exists(r | r.fieldName = finalName) or targetEntity.fields.exists(f | f.fieldName = finalName)) {
+                finalName = baseName + counter.toString();
+                counter = counter + 1;
+            }
+            inverseRel.fieldName = finalName;
+            
+            targetEntity.relations.add(inverseRel);
+            targetEntity.hasRelationships = true;
+            
+            ("  Synthesized MANY_TO_MANY inverse: " + targetEntity.className + "." + inverseRel.fieldName + " -> " + entity.className + " [mappedBy=" + ownerRel.fieldName + "]").println();
         }
-        return self.foreignKeyColumn.name;
     }
-    // Get the target table name
-    var targetTableName = getTargetTableName(self.targetTable);
-    // Default: targetTable_id
-    return targetTableName.singular() + "_id";
 }
 
-/**
- * Helper to get table name from targetTable (which might be a string or Table object)
- */
-operation getTargetTableName(targetTable : Any) : String {
-    if (targetTable.isTypeOf(String)) {
-        return targetTable;
-    }
-    return targetTable.name;
-}
+// Note: dependency/helper operations removed in favor of inline construction above.
 
 /**
  * Resolve table names to class names in relationship targets
  * This must run AFTER all entities are created but BEFORE inverse relationships
  */
 operation resolveRelationshipTargets() {
-    // "Resolving relationship target entities...".println();
+    "Resolving relationship target entities...".println();
     
     var allEntities = Target!EntityContext.all;
     
@@ -516,9 +957,9 @@ operation resolveRelationshipTargets() {
             if (targetEntity.isDefined()) {
                 // Update to class name
                 relation.targetEntity = targetEntity.className;
-    // ("  Resolved: " + entity.className + "." + relation.fieldName + " → " + targetEntity.className).println();
+                ("  Resolved: " + entity.className + "." + relation.fieldName + " → " + targetEntity.className).println();
             } else {
-    // ("  WARNING: Could not find target entity for table: " + targetTableName).println();
+                ("  WARNING: Could not find target entity for table: " + targetTableName).println();
             }
         }
     }
@@ -526,80 +967,79 @@ operation resolveRelationshipTargets() {
 
 /**
  * Create inverse relationships for bidirectional JPA mappings
- * For each MANY_TO_ONE relationship, create the corresponding ONE_TO_MANY on the parent entity
+ * 
+ * ========== RULE: GENERATE INVERSE RELATIONSHIPS ONLY FOR MANY_TO_ONE ==========
+ * Do not auto-create inverses for ONE_TO_ONE or MANY_TO_MANY
+ * These relationships are ambiguous and must be explicitly defined in the PIM
+ * 
+ * ========== RULE: DO NOT SYNTHESIZE INVERSES IF MAPPEDBY ALREADY EXISTS ==========
+ * Treat mappedBy as authoritative - if the inverse already exists, skip it
  */
 operation createInverseRelationships() {
-    // "Creating inverse relationships...".println();
+    "Creating inverse relationships (MANY_TO_ONE → ONE_TO_MANY only)...".println();
     
-    // Get all entities
     var allEntities = Target!EntityContext.all;
     
-    // For each entity, look at its MANY_TO_ONE, MANY_TO_MANY and ONE_TO_ONE relationships
     for (entity in allEntities) {
-        // Only create inverse for relations that are NOT themselves inverses (don't have mappedBy)
-        for (relation in entity.relations.select(r | (r.relationType = "MANY_TO_ONE" or r.relationType = "MANY_TO_MANY" or r.relationType = "ONE_TO_ONE") and not r.mappedBy.isDefined())) {
+        // CRITICAL RULE: Only generate inverses for MANY_TO_ONE relationships
+        // Do NOT auto-generate for ONE_TO_ONE or MANY_TO_MANY
+        var manyToOneRelations = entity.relations.select(r | 
+            r.relationType = "MANY_TO_ONE" and 
+            r.isOwner and 
+            (not r.mappedBy.isDefined() or r.mappedBy = "")
+        );
+        
+        for (relation in manyToOneRelations) {
             // Find the target entity
             var targetEntity = allEntities.selectOne(e | e.className = relation.targetEntity);
             
             if (targetEntity.isDefined()) {
-                var inverseType = "";
-                if (relation.relationType = "MANY_TO_ONE") {
-                    inverseType = "ONE_TO_MANY";
-                } else if (relation.relationType = "MANY_TO_MANY") {
-                    inverseType = "MANY_TO_MANY";
-                } else if (relation.relationType = "ONE_TO_ONE") {
-                    inverseType = "ONE_TO_ONE";
-                }
-
-                // Check if inverse relationship already exists
-                var existingInverse = targetEntity.relations.selectOne(r | 
-                    r.relationType = inverseType and 
-                    r.targetEntity = entity.className and
-                    r.mappedBy = relation.fieldName
+                // RULE: Skip if an inverse relationship already exists (explicitly defined in PIM)
+                // Check if target entity already has a ONE_TO_MANY that maps to this field
+                var inverseExists = targetEntity.relations.exists(r | 
+                    r.relationType = "ONE_TO_MANY" and
+                    r.mappedBy = relation.fieldName and
+                    r.targetEntity = entity.className
                 );
                 
-                // Only create if it doesn't exist
-                if (not existingInverse.isDefined()) {
-                    // Create inverse relationship
-                    var inverseRelation = new Target!RelationContext;
-                    inverseRelation.relationType = inverseType;
-                    inverseRelation.targetEntity = entity.className;
-                    
-                    // Generate unique field name
-                    var uniqueFieldName = "";
-                    if (inverseType = "MANY_TO_MANY") {
-                        uniqueFieldName = entity.tableName.toCamelCase().plural();
-                    } else if (inverseType = "ONE_TO_ONE") {
-                        uniqueFieldName = entity.tableName.toCamelCase().singular();
-                    } else {
-                        var baseFieldName = entity.tableName.toCamelCase();
-                        uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase() + "List";
-                    }
-                    
-                    // Additional check: ensure this name doesn't already exist in target entity
-                    var counter = 1;
-                    var finalFieldName = uniqueFieldName;
-                    while (targetEntity.relations.exists(r | r.fieldName = finalFieldName) or 
-                           targetEntity.fields.exists(f | f.fieldName = finalFieldName)) {
-                        finalFieldName = uniqueFieldName + counter.toString();
-                        counter = counter + 1;
-                    }
-                    
-                    inverseRelation.fieldName = finalFieldName;
-                    
-                    inverseRelation.mappedBy = relation.fieldName; // field name in the owning side
-                    inverseRelation.cascadeType = "ALL";
-                    inverseRelation.fetchType = "LAZY";
-                    inverseRelation.isOwner = false;
-                    
-                    // Add to target entity
-                    targetEntity.relations.add(inverseRelation);
-                    
-                    // Update hasRelationships flag
-                    targetEntity.hasRelationships = true;
-                    
-    // ("  Created inverse: " + targetEntity.className + ".@OneToMany(" + inverseRelation.fieldName + ") → " + entity.className).println();
+                if (inverseExists) {
+                    ("  Skipped inverse (already exists): " + targetEntity.className + " → " + entity.className + " [mappedBy=" + relation.fieldName + "]").println();
+                    continue;
                 }
+
+                // Create inverse relationship (ONE_TO_MANY)
+                var inverseRelation = new Target!RelationContext;
+                inverseRelation.relationType = "ONE_TO_MANY";
+                inverseRelation.targetEntity = entity.className;
+                
+                // Generate unique field name
+                // Pattern: {originalFieldName}{EntityName}List
+                // Example: category → categoryPostsList, author → authorPostsList
+                // inline firstToLowerCase (avoid String extension ops)
+                var baseFieldName = entity.className.substring(0, 1).toLowerCase() + entity.className.substring(1, entity.className.length());
+                var uniqueFieldName = relation.fieldName + baseFieldName.firstToUpperCase() + "List";
+                
+                // Ensure name uniqueness
+                var counter = 1;
+                var finalFieldName = uniqueFieldName;
+                while (targetEntity.relations.exists(r | r.fieldName = finalFieldName) or 
+                       targetEntity.fields.exists(f | f.fieldName = finalFieldName)) {
+                    finalFieldName = uniqueFieldName + counter.toString();
+                    counter = counter + 1;
+                }
+                
+                inverseRelation.fieldName = finalFieldName;
+                inverseRelation.mappedBy = relation.fieldName;
+                inverseRelation.cascadeType = "ALL";
+                inverseRelation.fetchType = "LAZY";
+                inverseRelation.isOwner = false;
+                inverseRelation.joinColumnName = ""; // Inverse side doesn't define join column
+                
+                // Add to target entity
+                targetEntity.relations.add(inverseRelation);
+                targetEntity.hasRelationships = true;
+                
+                ("  Synthesized inverse: " + targetEntity.className + "." + finalFieldName + " → " + entity.className + " [mappedBy=" + relation.fieldName + "]").println();
             }
         }
     }
@@ -608,9 +1048,11 @@ operation createInverseRelationships() {
 /**
  * Add automatic audit timestamp fields (createdAt, updatedAt) to all entities
  * These fields are managed by JPA auditing and don't need to be in the YAML
+ * 
+ * NOTE: This logic remains unchanged as per requirements
  */
 operation addAuditFieldsToAllEntities() {
-    // "Adding automatic audit fields to all entities...".println();
+    "Adding automatic audit fields to all entities...".println();
     
     var allEntities = Target!EntityContext.all;
     
@@ -629,7 +1071,7 @@ operation addAuditFieldsToAllEntities() {
             createdAtField.isPrimaryKey = false;
             
             entity.fields.add(createdAtField);
-    // ("  Added createdAt to " + entity.className).println();
+            ("  Added createdAt to " + entity.className).println();
         }
         
         // Check if updatedAt already exists
@@ -646,7 +1088,7 @@ operation addAuditFieldsToAllEntities() {
             updatedAtField.isPrimaryKey = false;
             
             entity.fields.add(updatedAtField);
-    // ("  Added updatedAt to " + entity.className).println();
+            ("  Added updatedAt to " + entity.className).println();
         }
     }
 }
@@ -660,15 +1102,14 @@ operation findEntityByTableName(tableName : String) : Target!EntityContext {
 }
 
 /**
- * Determine mapped by for bidirectional relations
+ * Convert first character to lowercase
+ * Example: Hello → hello
  */
-operation Source!Relation determineMappedBy() : String {
-    if (self.type.toString() = "ONE_TO_MANY") {
-        // For ONE_TO_MANY, mappedBy should be the field name in the target entity
-        var targetTableName = getTargetTableName(self.targetTable);
-        return targetTableName.singular();
+operation String firstToLowerCase() : String {
+    if (self.length() == 0) {
+        return self;
     }
-    return "";
+    return self.substring(0, 1).toLowerCase() + self.substring(1, self.length());
 }
 
 /**

@@ -31,6 +31,19 @@
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/ONE_TO_ONE"/>
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//RelationType/MANY_TO_MANY"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//FetchType">
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//FetchType/LAZY"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//FetchType/EAGER"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//JpaCascadeType">
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/ALL"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/PERSIST"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/MERGE"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/REMOVE"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/REFRESH"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/DETACH"/>
+      <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//JpaCascadeType/NONE"/>
+    </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="MDE.ecore#//CascadeType">
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//CascadeType/cascade"/>
       <genEnumLiterals ecoreEnumLiteral="MDE.ecore#//CascadeType/setNull"/>
@@ -53,6 +66,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/javaVersion"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/springBootVersion"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/version"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/language"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Project/framework"/>
     </genClasses>
@@ -82,6 +96,14 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/targetColumn"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/onDelete"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/fetch"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/cascade"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/optional"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/joinTableName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/joinColumnName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/inverseJoinColumnName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Relation/mappedBy"/>
     </genClasses>
     <genClasses ecoreClass="MDE.ecore#//Api">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute MDE.ecore#//Api/basePath"/>

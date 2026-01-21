@@ -44,16 +44,28 @@ export default function App() {
 
   const onConnect = useCallback((params: Connection) => {
     if (!params.source || !params.target) return;
+    // If user connected via column handles, keep them (TableNode emits handle ids like `${nodeId}-${colIdx}-source`)
+    const sourceHandle = params.sourceHandle || undefined;
+    const targetHandle = params.targetHandle || undefined;
     const edge: Edge = {
       ...params,
       source: params.source,
       target: params.target,
-      id: `${params.source}-${params.target}`,
+      // Include handles so multiple relations between same tables are possible
+      id: `${params.source}-${sourceHandle || 'source'}__${params.target}-${targetHandle || 'target'}`,
       type: 'smoothstep',
       animated: true,
       style: { stroke: '#3b82f6', strokeWidth: 2 },
       markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' },
-      data: { relationType: 'MANY_TO_ONE' },
+      data: {
+        sourceHandle,
+        targetHandle,
+        relationType: 'MANY_TO_ONE',
+        owner: true,
+        fetch: 'LAZY',
+        cascade: 'ALL',
+        optional: true
+      },
       label: '∞ → 1',
       labelStyle: { fill: '#3b82f6', fontWeight: 700, fontSize: 12 },
       labelBgStyle: { fill: 'white', fillOpacity: 0.95 },
@@ -104,9 +116,21 @@ export default function App() {
             },
           };
           const config = relationConfig[relationType];
+          let newOwner = edge.data?.owner;
+          if (relationType === 'MANY_TO_ONE') newOwner = true;
+          else if (relationType === 'ONE_TO_MANY') newOwner = false;
+          else if (newOwner === undefined) newOwner = true; // Default for others
+
           return {
             ...edge,
-            data: { ...edge.data, relationType },
+            data: {
+              ...edge.data,
+              relationType,
+              owner: newOwner,
+              fetch: 'LAZY',
+              cascade: edge.data?.cascade || 'ALL',
+              optional: edge.data?.optional !== undefined ? edge.data.optional : true
+            },
             label: config.label,
             animated: config.animated,
             style: { stroke: config.color, strokeWidth: 2.5 },
@@ -226,6 +250,20 @@ export default function App() {
 
   const triggerGeneration = async () => {
     setShowModal(false);
+    
+    const getColumnNameFromHandle = (nodeId: string, handleId?: string) => {
+      if (!handleId) return undefined;
+      // handleId format: `${nodeId}-${idx}-source` or `${nodeId}-${idx}-target`
+      const parts = handleId.split('-');
+      if (parts.length < 3) return undefined;
+      const idxStr = parts[parts.length - 2];
+      const idx = Number(idxStr);
+      if (!Number.isFinite(idx)) return undefined;
+      const node = nodes.find((n: any) => n.id === nodeId);
+      const col = node?.data?.columns?.[idx];
+      return col?.name as string | undefined;
+    };
+    
     const tables = nodes.map(node => ({
       Table: {
         name: node.data.label,
@@ -241,12 +279,52 @@ export default function App() {
           .map(edge => {
             const targetNode = nodes.find(n => n.id === edge.target);
             if (!targetNode) return null;
-            return {
-              Relation: {
-                targetTable: targetNode.data.label,
-                type: edge.data?.relationType || "ONE_TO_MANY",
-              }
+
+            const relationType = edge.data?.relationType || "ONE_TO_MANY";
+
+            // Enforce ownership rules during generation
+            let isOwner = edge.data?.owner;
+            if (relationType === 'MANY_TO_ONE') isOwner = true;
+            if (relationType === 'ONE_TO_MANY') isOwner = false;
+            if (isOwner === undefined && (relationType === 'MANY_TO_MANY' || relationType === 'ONE_TO_ONE')) {
+              isOwner = true; // Default for many-to-many/one-to-one
+            }
+
+            const relationData: any = {
+              targetTable: targetNode.data.label,
+              type: relationType,
+              owner: isOwner,
+              fetch: 'LAZY', // Force LAZY
+              cascade: edge.data?.cascade || 'ALL',
             };
+
+            // Deterministic Join Table and Column naming for owners
+            if (isOwner) {
+              if (relationType === 'MANY_TO_MANY') {
+                const source = node.data.label.toLowerCase();
+                const target = targetNode.data.label.toLowerCase();
+                // Consistent naming: alphabetize to ensure same name from both sides if model had it
+                const parts = [source, target].sort();
+                relationData.joinTableName = `${parts[0]}_${parts[1]}_map`;
+                relationData.joinColumnName = `${source}_id`;
+                relationData.inverseJoinColumnName = `${target}_id`;
+              } else if (relationType === 'MANY_TO_ONE' || relationType === 'ONE_TO_ONE') {
+                // If edge was created from a specific column, use that column as join column name
+                const chosenColumn = getColumnNameFromHandle(edge.source, edge.data?.sourceHandle);
+                relationData.joinColumnName = chosenColumn || `${targetNode.data.label.toLowerCase()}_id`;
+              }
+            } else {
+              // For inverse side, provide mappedBy (heuristic: source table name)
+              relationData.mappedBy = node.data.label.toLowerCase();
+            }
+
+            if (edge.data?.optional !== undefined) {
+              relationData.optional = edge.data.optional;
+            } else {
+              relationData.optional = true;
+            }
+
+            return { Relation: relationData };
           })
           .filter(Boolean)
       }

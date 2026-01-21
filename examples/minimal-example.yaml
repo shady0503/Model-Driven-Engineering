@@ -1,0 +1,28 @@
+BackendConfig:
+  project:
+    Project:
+      name: MinimalAPI
+      groupId: com.example.minimal
+      javaVersion: 17
+      springBootVersion: 3.2.0
+      language: JAVA
+      framework: SPRING_BOOT
+  database:
+    Database:
+      name: minimal_db
+      type: POSTGRESQL
+      host: localhost
+      port: 5432
+      tables:
+        - Table:
+            name: items
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: name, type: STRING, nullable: false }
+              - Column: { name: description, type: TEXT }
+  api:
+    Api:
+      basePath: /api
+      routes:
+        - Route:
+            { entity: items, methods: [CREATE, READ, UPDATE, DELETE, LIST] }

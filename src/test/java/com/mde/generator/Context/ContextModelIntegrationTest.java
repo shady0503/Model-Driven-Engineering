@@ -5,6 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import static org.junit.jupiter.api.Assertions.*;
 
+import Context.ContextFactory;
+import Context.ProjectContext;
+import Context.EntityContext;
+import Context.FieldContext;
+import Context.RelationContext;
+import Context.DependencyContext;
+
 /**
  * Integration tests for Context metamodel
  * Tests complex model interactions and relationships
@@ -23,7 +30,7 @@ public class ContextModelIntegrationTest {
     public void testCompleteBlogPlatformModel() {
         // Create project
         ProjectContext project = createBlogProject();
-        
+
         // Validate project structure
         assertEquals("com.example", project.getGroupId());
         assertEquals("blog-platform", project.getArtifactId());
@@ -33,10 +40,10 @@ public class ContextModelIntegrationTest {
         assertEquals("3.2.0", project.getSpringBootVersion());
         assertEquals("postgresql", project.getDatabaseType());
         assertEquals("blogdb", project.getDatabaseName());
-        
+
         // Validate entities
         assertEquals(3, project.getEntities().size());
-        
+
         // Validate User entity
         EntityContext userEntity = findEntityByClassName(project, "User");
         assertNotNull(userEntity);
@@ -44,7 +51,7 @@ public class ContextModelIntegrationTest {
         assertEquals(4, userEntity.getFields().size());
         assertEquals(1, userEntity.getRelations().size());
         assertTrue(userEntity.isHasRelationships());
-        
+
         // Validate Post entity
         EntityContext postEntity = findEntityByClassName(project, "Post");
         assertNotNull(postEntity);
@@ -52,14 +59,14 @@ public class ContextModelIntegrationTest {
         assertEquals(5, postEntity.getFields().size());
         assertEquals(2, postEntity.getRelations().size());
         assertTrue(postEntity.isHasRelationships());
-        
+
         // Validate Comment entity
         EntityContext commentEntity = findEntityByClassName(project, "Comment");
         assertNotNull(commentEntity);
         assertEquals("comments", commentEntity.getTableName());
         assertEquals(4, commentEntity.getFields().size());
         assertEquals(2, commentEntity.getRelations().size());
-        
+
         // Validate dependencies
         assertEquals(2, project.getDependencies().size());
     }
@@ -68,10 +75,10 @@ public class ContextModelIntegrationTest {
     @DisplayName("Should correctly model entity relationships")
     public void testEntityRelationships() {
         ProjectContext project = createBlogProject();
-        
+
         EntityContext userEntity = findEntityByClassName(project, "User");
         EntityContext postEntity = findEntityByClassName(project, "Post");
-        
+
         // User has OneToMany relationship with Post
         RelationContext userPostsRelation = userEntity.getRelations().get(0);
         assertEquals("posts", userPostsRelation.getFieldName());
@@ -81,7 +88,7 @@ public class ContextModelIntegrationTest {
         assertEquals("author", userPostsRelation.getMappedBy());
         assertEquals("ALL", userPostsRelation.getCascadeType());
         assertEquals("LAZY", userPostsRelation.getFetchType());
-        
+
         // Post has ManyToOne relationship with User
         RelationContext postAuthorRelation = findRelationByFieldName(postEntity, "author");
         assertNotNull(postAuthorRelation);
@@ -98,7 +105,7 @@ public class ContextModelIntegrationTest {
     public void testFieldMapping() {
         ProjectContext project = createBlogProject();
         EntityContext userEntity = findEntityByClassName(project, "User");
-        
+
         // Validate primary key
         assertNotNull(userEntity.getPrimaryKey());
         assertEquals("id", userEntity.getPrimaryKey().getFieldName());
@@ -106,7 +113,7 @@ public class ContextModelIntegrationTest {
         assertTrue(userEntity.getPrimaryKey().isIsPrimaryKey());
         assertFalse(userEntity.getPrimaryKey().isIsNullable());
         assertTrue(userEntity.getPrimaryKey().isIsUnique());
-        
+
         // Validate email field (unique constraint)
         FieldContext emailField = findFieldByName(userEntity, "email");
         assertNotNull(emailField);
@@ -116,7 +123,7 @@ public class ContextModelIntegrationTest {
         assertFalse(emailField.isIsPrimaryKey());
         assertFalse(emailField.isIsNullable());
         assertTrue(emailField.isIsUnique());
-        
+
         // Validate name field (no unique constraint)
         FieldContext nameField = findFieldByName(userEntity, "name");
         assertNotNull(nameField);
@@ -127,10 +134,10 @@ public class ContextModelIntegrationTest {
     @DisplayName("Should handle bidirectional relationships correctly")
     public void testBidirectionalRelationships() {
         ProjectContext project = createBlogProject();
-        
+
         EntityContext postEntity = findEntityByClassName(project, "Post");
         EntityContext commentEntity = findEntityByClassName(project, "Comment");
-        
+
         // Post -> Comments (one-to-many, non-owning)
         RelationContext postCommentsRelation = findRelationByFieldName(postEntity, "comments");
         assertNotNull(postCommentsRelation);
@@ -138,7 +145,7 @@ public class ContextModelIntegrationTest {
         assertEquals("@OneToMany", postCommentsRelation.getRelationType());
         assertFalse(postCommentsRelation.isIsOwner());
         assertEquals("post", postCommentsRelation.getMappedBy());
-        
+
         // Comment -> Post (many-to-one, owning)
         RelationContext commentPostRelation = findRelationByFieldName(commentEntity, "post");
         assertNotNull(commentPostRelation);
@@ -155,15 +162,15 @@ public class ContextModelIntegrationTest {
         ProjectContext postgresProject = factory.createProjectContext();
         postgresProject.setDatabaseType("postgresql");
         postgresProject.setDatabaseName("mydb");
-        
+
         assertEquals("postgresql", postgresProject.getDatabaseType());
         assertEquals("mydb", postgresProject.getDatabaseName());
-        
+
         // Test MySQL
         ProjectContext mysqlProject = factory.createProjectContext();
         mysqlProject.setDatabaseType("mysql");
         mysqlProject.setDatabaseName("testdb");
-        
+
         assertEquals("mysql", mysqlProject.getDatabaseType());
         assertEquals("testdb", mysqlProject.getDatabaseName());
     }
@@ -172,14 +179,14 @@ public class ContextModelIntegrationTest {
     @DisplayName("Should support custom dependencies")
     public void testCustomDependencies() {
         ProjectContext project = createBlogProject();
-        
+
         DependencyContext securityDep = findDependencyByArtifactId(project, "spring-boot-starter-security");
         assertNotNull(securityDep);
         assertEquals("org.springframework.boot", securityDep.getGroupId());
         assertEquals("spring-boot-starter-security", securityDep.getArtifactId());
         assertEquals("3.2.0", securityDep.getVersion());
         assertEquals("compile", securityDep.getScope());
-        
+
         DependencyContext validationDep = findDependencyByArtifactId(project, "spring-boot-starter-validation");
         assertNotNull(validationDep);
         assertNull(validationDep.getVersion()); // Uses parent version
@@ -189,17 +196,17 @@ public class ContextModelIntegrationTest {
     @DisplayName("Should support different Java types")
     public void testJavaTypeMapping() {
         EntityContext entity = factory.createEntityContext();
-        
+
         FieldContext longField = createField("id", "id", "Long", true, false, true);
         FieldContext stringField = createField("name", "name", "String", false, false, false);
         FieldContext dateTimeField = createField("created_at", "createdAt", "LocalDateTime", false, false, false);
         FieldContext booleanField = createField("active", "active", "Boolean", false, true, false);
-        
+
         entity.getFields().add(longField);
         entity.getFields().add(stringField);
         entity.getFields().add(dateTimeField);
         entity.getFields().add(booleanField);
-        
+
         assertEquals(4, entity.getFields().size());
         assertEquals("Long", entity.getFields().get(0).getJavaType());
         assertEquals("String", entity.getFields().get(1).getJavaType());
@@ -212,12 +219,12 @@ public class ContextModelIntegrationTest {
     public void testPackageNamingConsistency() {
         ProjectContext project = createBlogProject();
         String basePackage = project.getPackageName();
-        
+
         for (EntityContext entity : project.getEntities()) {
             assertTrue(entity.getPackageName().startsWith(basePackage),
-                "Entity package should start with base package: " + entity.getClassName());
+                    "Entity package should start with base package: " + entity.getClassName());
             assertTrue(entity.getPackageName().endsWith(".entity"),
-                "Entity package should end with .entity: " + entity.getClassName());
+                    "Entity package should end with .entity: " + entity.getClassName());
         }
     }
 
@@ -233,19 +240,19 @@ public class ContextModelIntegrationTest {
         project.setSpringBootVersion("3.2.0");
         project.setDatabaseType("postgresql");
         project.setDatabaseName("blogdb");
-        
+
         // Create User entity
         EntityContext userEntity = createUserEntity();
         project.getEntities().add(userEntity);
-        
+
         // Create Post entity
         EntityContext postEntity = createPostEntity();
         project.getEntities().add(postEntity);
-        
+
         // Create Comment entity
         EntityContext commentEntity = createCommentEntity();
         project.getEntities().add(commentEntity);
-        
+
         // Add dependencies
         DependencyContext securityDep = factory.createDependencyContext();
         securityDep.setGroupId("org.springframework.boot");
@@ -253,12 +260,12 @@ public class ContextModelIntegrationTest {
         securityDep.setVersion("3.2.0");
         securityDep.setScope("compile");
         project.getDependencies().add(securityDep);
-        
+
         DependencyContext validationDep = factory.createDependencyContext();
         validationDep.setGroupId("org.springframework.boot");
         validationDep.setArtifactId("spring-boot-starter-validation");
         project.getDependencies().add(validationDep);
-        
+
         return project;
     }
 
@@ -268,19 +275,19 @@ public class ContextModelIntegrationTest {
         entity.setClassName("User");
         entity.setPackageName("com.example.blog.entity");
         entity.setHasRelationships(true);
-        
+
         // Fields
         FieldContext id = createField("id", "id", "Long", true, false, true);
         FieldContext name = createField("name", "name", "String", false, false, false);
         FieldContext email = createField("email", "email", "String", false, false, true);
         FieldContext createdAt = createField("created_at", "createdAt", "LocalDateTime", false, false, false);
-        
+
         entity.getFields().add(id);
         entity.getFields().add(name);
         entity.getFields().add(email);
         entity.getFields().add(createdAt);
         entity.setPrimaryKey(id);
-        
+
         // Relationship: User -> Posts
         RelationContext postsRelation = factory.createRelationContext();
         postsRelation.setFieldName("posts");
@@ -291,7 +298,7 @@ public class ContextModelIntegrationTest {
         postsRelation.setCascadeType("ALL");
         postsRelation.setFetchType("LAZY");
         entity.getRelations().add(postsRelation);
-        
+
         return entity;
     }
 
@@ -301,21 +308,21 @@ public class ContextModelIntegrationTest {
         entity.setClassName("Post");
         entity.setPackageName("com.example.blog.entity");
         entity.setHasRelationships(true);
-        
+
         // Fields
         FieldContext id = createField("id", "id", "Long", true, false, true);
         FieldContext title = createField("title", "title", "String", false, false, false);
         FieldContext content = createField("content", "content", "String", false, true, false);
         FieldContext published = createField("published", "published", "Boolean", false, false, false);
         FieldContext createdAt = createField("created_at", "createdAt", "LocalDateTime", false, false, false);
-        
+
         entity.getFields().add(id);
         entity.getFields().add(title);
         entity.getFields().add(content);
         entity.getFields().add(published);
         entity.getFields().add(createdAt);
         entity.setPrimaryKey(id);
-        
+
         // Relationship: Post -> User (author)
         RelationContext authorRelation = factory.createRelationContext();
         authorRelation.setFieldName("author");
@@ -326,7 +333,7 @@ public class ContextModelIntegrationTest {
         authorRelation.setCascadeType("NONE");
         authorRelation.setFetchType("EAGER");
         entity.getRelations().add(authorRelation);
-        
+
         // Relationship: Post -> Comments
         RelationContext commentsRelation = factory.createRelationContext();
         commentsRelation.setFieldName("comments");
@@ -337,7 +344,7 @@ public class ContextModelIntegrationTest {
         commentsRelation.setCascadeType("ALL");
         commentsRelation.setFetchType("LAZY");
         entity.getRelations().add(commentsRelation);
-        
+
         return entity;
     }
 
@@ -347,19 +354,19 @@ public class ContextModelIntegrationTest {
         entity.setClassName("Comment");
         entity.setPackageName("com.example.blog.entity");
         entity.setHasRelationships(true);
-        
+
         // Fields
         FieldContext id = createField("id", "id", "Long", true, false, true);
         FieldContext content = createField("content", "content", "String", false, false, false);
         FieldContext createdAt = createField("created_at", "createdAt", "LocalDateTime", false, false, false);
         FieldContext approved = createField("approved", "approved", "Boolean", false, false, false);
-        
+
         entity.getFields().add(id);
         entity.getFields().add(content);
         entity.getFields().add(createdAt);
         entity.getFields().add(approved);
         entity.setPrimaryKey(id);
-        
+
         // Relationship: Comment -> Post
         RelationContext postRelation = factory.createRelationContext();
         postRelation.setFieldName("post");
@@ -370,7 +377,7 @@ public class ContextModelIntegrationTest {
         postRelation.setCascadeType("NONE");
         postRelation.setFetchType("LAZY");
         entity.getRelations().add(postRelation);
-        
+
         // Relationship: Comment -> User (author)
         RelationContext authorRelation = factory.createRelationContext();
         authorRelation.setFieldName("author");
@@ -381,12 +388,12 @@ public class ContextModelIntegrationTest {
         authorRelation.setCascadeType("NONE");
         authorRelation.setFetchType("EAGER");
         entity.getRelations().add(authorRelation);
-        
+
         return entity;
     }
 
     private FieldContext createField(String columnName, String fieldName, String javaType,
-                                     boolean isPK, boolean isNullable, boolean isUnique) {
+            boolean isPK, boolean isNullable, boolean isUnique) {
         FieldContext field = factory.createFieldContext();
         field.setColumnName(columnName);
         field.setFieldName(fieldName);
@@ -399,29 +406,29 @@ public class ContextModelIntegrationTest {
 
     private EntityContext findEntityByClassName(ProjectContext project, String className) {
         return project.getEntities().stream()
-            .filter(e -> e.getClassName().equals(className))
-            .findFirst()
-            .orElse(null);
+                .filter(e -> e.getClassName().equals(className))
+                .findFirst()
+                .orElse(null);
     }
 
     private FieldContext findFieldByName(EntityContext entity, String fieldName) {
         return entity.getFields().stream()
-            .filter(f -> f.getFieldName().equals(fieldName))
-            .findFirst()
-            .orElse(null);
+                .filter(f -> f.getFieldName().equals(fieldName))
+                .findFirst()
+                .orElse(null);
     }
 
     private RelationContext findRelationByFieldName(EntityContext entity, String fieldName) {
         return entity.getRelations().stream()
-            .filter(r -> r.getFieldName().equals(fieldName))
-            .findFirst()
-            .orElse(null);
+                .filter(r -> r.getFieldName().equals(fieldName))
+                .findFirst()
+                .orElse(null);
     }
 
     private DependencyContext findDependencyByArtifactId(ProjectContext project, String artifactId) {
         return project.getDependencies().stream()
-            .filter(d -> d.getArtifactId().equals(artifactId))
-            .findFirst()
-            .orElse(null);
+                .filter(d -> d.getArtifactId().equals(artifactId))
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -9,8 +9,10 @@ import ModelDrivenEngineering.Column;
 import ModelDrivenEngineering.DataType;
 import ModelDrivenEngineering.Database;
 import ModelDrivenEngineering.DatabaseType;
+import ModelDrivenEngineering.FetchType;
 import ModelDrivenEngineering.Framework;
 import ModelDrivenEngineering.HttpMethod;
+import ModelDrivenEngineering.JpaCascadeType;
 import ModelDrivenEngineering.Language;
 import ModelDrivenEngineering.ModelDrivenEngineeringFactory;
 import ModelDrivenEngineering.ModelDrivenEngineeringPackage;
@@ -32,12 +34,14 @@ import org.eclipse.emf.ecore.impl.EPackageImpl;
  * <!-- begin-user-doc -->
  * An implementation of the model <b>Package</b>.
  * <!-- end-user-doc -->
+ * 
  * @generated
  */
 public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements ModelDrivenEngineeringPackage {
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass backendConfigEClass = null;
@@ -45,6 +49,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass projectEClass = null;
@@ -52,6 +57,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass databaseEClass = null;
@@ -59,6 +65,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass tableEClass = null;
@@ -66,6 +73,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass columnEClass = null;
@@ -73,6 +81,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass relationEClass = null;
@@ -80,6 +89,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass apiEClass = null;
@@ -87,6 +97,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EClass routeEClass = null;
@@ -94,6 +105,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum languageEEnum = null;
@@ -101,6 +113,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum frameworkEEnum = null;
@@ -108,6 +121,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum databaseTypeEEnum = null;
@@ -115,6 +129,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum dataTypeEEnum = null;
@@ -122,6 +137,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum relationTypeEEnum = null;
@@ -129,6 +145,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum cascadeTypeEEnum = null;
@@ -136,20 +153,40 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private EEnum httpMethodEEnum = null;
 
 	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	private EEnum fetchTypeEEnum = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	private EEnum jpaCascadeTypeEEnum = null;
+
+	/**
 	 * Creates an instance of the model <b>Package</b>, registered with
-	 * {@link org.eclipse.emf.ecore.EPackage.Registry EPackage.Registry} by the package
+	 * {@link org.eclipse.emf.ecore.EPackage.Registry EPackage.Registry} by the
+	 * package
 	 * package URI value.
-	 * <p>Note: the correct way to create the package is via the static
+	 * <p>
+	 * Note: the correct way to create the package is via the static
 	 * factory method {@link #init init()}, which also performs
 	 * initialization of the package, or returns the registered package,
 	 * if one already exists.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @see org.eclipse.emf.ecore.EPackage.Registry
 	 * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#eNS_URI
 	 * @see #init()
@@ -158,31 +195,42 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	private ModelDrivenEngineeringPackageImpl() {
 		super(eNS_URI, ModelDrivenEngineeringFactory.eINSTANCE);
 	}
+
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private static boolean isInited = false;
 
 	/**
-	 * Creates, registers, and initializes the <b>Package</b> for this model, and for any others upon which it depends.
+	 * Creates, registers, and initializes the <b>Package</b> for this model, and
+	 * for any others upon which it depends.
 	 *
-	 * <p>This method is used to initialize {@link ModelDrivenEngineeringPackage#eINSTANCE} when that field is accessed.
-	 * Clients should not invoke it directly. Instead, they should simply access that field to obtain the package.
+	 * <p>
+	 * This method is used to initialize
+	 * {@link ModelDrivenEngineeringPackage#eINSTANCE} when that field is accessed.
+	 * Clients should not invoke it directly. Instead, they should simply access
+	 * that field to obtain the package.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @see #eNS_URI
 	 * @see #createPackageContents()
 	 * @see #initializePackageContents()
 	 * @generated
 	 */
 	public static ModelDrivenEngineeringPackage init() {
-		if (isInited) return (ModelDrivenEngineeringPackage)EPackage.Registry.INSTANCE.getEPackage(ModelDrivenEngineeringPackage.eNS_URI);
+		if (isInited)
+			return (ModelDrivenEngineeringPackage) EPackage.Registry.INSTANCE
+					.getEPackage(ModelDrivenEngineeringPackage.eNS_URI);
 
 		// Obtain or create and register package
 		Object registeredModelDrivenEngineeringPackage = EPackage.Registry.INSTANCE.get(eNS_URI);
-		ModelDrivenEngineeringPackageImpl theModelDrivenEngineeringPackage = registeredModelDrivenEngineeringPackage instanceof ModelDrivenEngineeringPackageImpl ? (ModelDrivenEngineeringPackageImpl)registeredModelDrivenEngineeringPackage : new ModelDrivenEngineeringPackageImpl();
+		ModelDrivenEngineeringPackageImpl theModelDrivenEngineeringPackage = registeredModelDrivenEngineeringPackage instanceof ModelDrivenEngineeringPackageImpl
+				? (ModelDrivenEngineeringPackageImpl) registeredModelDrivenEngineeringPackage
+				: new ModelDrivenEngineeringPackageImpl();
 
 		isInited = true;
 
@@ -203,6 +251,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -213,36 +262,40 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getBackendConfig_Project() {
-		return (EReference)backendConfigEClass.getEStructuralFeatures().get(0);
+		return (EReference) backendConfigEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getBackendConfig_Database() {
-		return (EReference)backendConfigEClass.getEStructuralFeatures().get(1);
+		return (EReference) backendConfigEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getBackendConfig_Api() {
-		return (EReference)backendConfigEClass.getEStructuralFeatures().get(2);
+		return (EReference) backendConfigEClass.getEStructuralFeatures().get(2);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -253,66 +306,84 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getProject_GroupId() {
-		return (EAttribute)projectEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getProject_JavaVersion() {
-		return (EAttribute)projectEClass.getEStructuralFeatures().get(1);
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getProject_SpringBootVersion() {
-		return (EAttribute)projectEClass.getEStructuralFeatures().get(2);
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(2);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getProject_Name() {
-		return (EAttribute)projectEClass.getEStructuralFeatures().get(3);
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(3);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getProject_Version() {
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(4);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getProject_Language() {
-		return (EAttribute)projectEClass.getEStructuralFeatures().get(4);
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(5);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getProject_Framework() {
-		return (EAttribute)projectEClass.getEStructuralFeatures().get(5);
+		return (EAttribute) projectEClass.getEStructuralFeatures().get(6);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -323,56 +394,62 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getDatabase_Type() {
-		return (EAttribute)databaseEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) databaseEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getDatabase_Host() {
-		return (EAttribute)databaseEClass.getEStructuralFeatures().get(1);
+		return (EAttribute) databaseEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getDatabase_Port() {
-		return (EAttribute)databaseEClass.getEStructuralFeatures().get(2);
+		return (EAttribute) databaseEClass.getEStructuralFeatures().get(2);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getDatabase_Name() {
-		return (EAttribute)databaseEClass.getEStructuralFeatures().get(3);
+		return (EAttribute) databaseEClass.getEStructuralFeatures().get(3);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getDatabase_Tables() {
-		return (EReference)databaseEClass.getEStructuralFeatures().get(4);
+		return (EReference) databaseEClass.getEStructuralFeatures().get(4);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -383,36 +460,40 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getTable_Name() {
-		return (EAttribute)tableEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) tableEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getTable_Columns() {
-		return (EReference)tableEClass.getEStructuralFeatures().get(1);
+		return (EReference) tableEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getTable_Relations() {
-		return (EReference)tableEClass.getEStructuralFeatures().get(2);
+		return (EReference) tableEClass.getEStructuralFeatures().get(2);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -423,76 +504,84 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getColumn_Name() {
-		return (EAttribute)columnEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) columnEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getColumn_Type() {
-		return (EAttribute)columnEClass.getEStructuralFeatures().get(1);
+		return (EAttribute) columnEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getColumn_Primary() {
-		return (EAttribute)columnEClass.getEStructuralFeatures().get(2);
+		return (EAttribute) columnEClass.getEStructuralFeatures().get(2);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getColumn_Unique() {
-		return (EAttribute)columnEClass.getEStructuralFeatures().get(3);
+		return (EAttribute) columnEClass.getEStructuralFeatures().get(3);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getColumn_Nullable() {
-		return (EAttribute)columnEClass.getEStructuralFeatures().get(4);
+		return (EAttribute) columnEClass.getEStructuralFeatures().get(4);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getColumn_Length() {
-		return (EAttribute)columnEClass.getEStructuralFeatures().get(5);
+		return (EAttribute) columnEClass.getEStructuralFeatures().get(5);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getColumn_Relation() {
-		return (EReference)columnEClass.getEStructuralFeatures().get(6);
+		return (EReference) columnEClass.getEStructuralFeatures().get(6);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -503,46 +592,139 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getRelation_TargetTable() {
-		return (EAttribute)relationEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getRelation_TargetColumn() {
-		return (EAttribute)relationEClass.getEStructuralFeatures().get(1);
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getRelation_OnDelete() {
-		return (EAttribute)relationEClass.getEStructuralFeatures().get(2);
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(2);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getRelation_Type() {
-		return (EAttribute)relationEClass.getEStructuralFeatures().get(3);
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(3);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_Owner() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(4);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_Fetch() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(5);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_Cascade() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(6);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_Optional() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(7);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_JoinTableName() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(8);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_JoinColumnName() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(9);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_InverseJoinColumnName() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(10);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EAttribute getRelation_MappedBy() {
+		return (EAttribute) relationEClass.getEStructuralFeatures().get(11);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -553,26 +735,29 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getApi_BasePath() {
-		return (EAttribute)apiEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) apiEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EReference getApi_Routes() {
-		return (EReference)apiEClass.getEStructuralFeatures().get(1);
+		return (EReference) apiEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -583,26 +768,29 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getRoute_Entity() {
-		return (EAttribute)routeEClass.getEStructuralFeatures().get(0);
+		return (EAttribute) routeEClass.getEStructuralFeatures().get(0);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
 	public EAttribute getRoute_Methods() {
-		return (EAttribute)routeEClass.getEStructuralFeatures().get(1);
+		return (EAttribute) routeEClass.getEStructuralFeatures().get(1);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -613,6 +801,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -623,6 +812,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -633,6 +823,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -643,6 +834,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -653,6 +845,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -663,6 +856,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
@@ -673,29 +867,55 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	@Override
-	public ModelDrivenEngineeringFactory getModelDrivenEngineeringFactory() {
-		return (ModelDrivenEngineeringFactory)getEFactoryInstance();
+	public EEnum getFetchType() {
+		return fetchTypeEEnum;
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public EEnum getJpaCascadeType() {
+		return jpaCascadeTypeEEnum;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @generated
+	 */
+	@Override
+	public ModelDrivenEngineeringFactory getModelDrivenEngineeringFactory() {
+		return (ModelDrivenEngineeringFactory) getEFactoryInstance();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private boolean isCreated = false;
 
 	/**
-	 * Creates the meta-model objects for the package.  This method is
+	 * Creates the meta-model objects for the package. This method is
 	 * guarded to have no affect on any invocation but its first.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	public void createPackageContents() {
-		if (isCreated) return;
+		if (isCreated)
+			return;
 		isCreated = true;
 
 		// Create classes and their features
@@ -709,6 +929,7 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 		createEAttribute(projectEClass, PROJECT__JAVA_VERSION);
 		createEAttribute(projectEClass, PROJECT__SPRING_BOOT_VERSION);
 		createEAttribute(projectEClass, PROJECT__NAME);
+		createEAttribute(projectEClass, PROJECT__VERSION);
 		createEAttribute(projectEClass, PROJECT__LANGUAGE);
 		createEAttribute(projectEClass, PROJECT__FRAMEWORK);
 
@@ -738,6 +959,14 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 		createEAttribute(relationEClass, RELATION__TARGET_COLUMN);
 		createEAttribute(relationEClass, RELATION__ON_DELETE);
 		createEAttribute(relationEClass, RELATION__TYPE);
+		createEAttribute(relationEClass, RELATION__OWNER);
+		createEAttribute(relationEClass, RELATION__FETCH);
+		createEAttribute(relationEClass, RELATION__CASCADE);
+		createEAttribute(relationEClass, RELATION__OPTIONAL);
+		createEAttribute(relationEClass, RELATION__JOIN_TABLE_NAME);
+		createEAttribute(relationEClass, RELATION__JOIN_COLUMN_NAME);
+		createEAttribute(relationEClass, RELATION__INVERSE_JOIN_COLUMN_NAME);
+		createEAttribute(relationEClass, RELATION__MAPPED_BY);
 
 		apiEClass = createEClass(API);
 		createEAttribute(apiEClass, API__BASE_PATH);
@@ -755,24 +984,29 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 		relationTypeEEnum = createEEnum(RELATION_TYPE);
 		cascadeTypeEEnum = createEEnum(CASCADE_TYPE);
 		httpMethodEEnum = createEEnum(HTTP_METHOD);
+		fetchTypeEEnum = createEEnum(FETCH_TYPE);
+		jpaCascadeTypeEEnum = createEEnum(JPA_CASCADE_TYPE);
 	}
 
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	private boolean isInitialized = false;
 
 	/**
-	 * Complete the initialization of the package and its meta-model.  This
+	 * Complete the initialization of the package and its meta-model. This
 	 * method is guarded to have no affect on any invocation but its first.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @generated
 	 */
 	public void initializePackageContents() {
-		if (isInitialized) return;
+		if (isInitialized)
+			return;
 		isInitialized = true;
 
 		// Initialize package
@@ -787,53 +1021,119 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 		// Add supertypes to classes
 
 		// Initialize classes, features, and operations; add parameters
-		initEClass(backendConfigEClass, BackendConfig.class, "BackendConfig", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEReference(getBackendConfig_Project(), this.getProject(), null, "project", null, 1, 1, BackendConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getBackendConfig_Database(), this.getDatabase(), null, "database", null, 1, 1, BackendConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getBackendConfig_Api(), this.getApi(), null, "api", null, 0, 1, BackendConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEClass(backendConfigEClass, BackendConfig.class, "BackendConfig", !IS_ABSTRACT, !IS_INTERFACE,
+				IS_GENERATED_INSTANCE_CLASS);
+		initEReference(getBackendConfig_Project(), this.getProject(), null, "project", null, 1, 1, BackendConfig.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE,
+				IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getBackendConfig_Database(), this.getDatabase(), null, "database", null, 1, 1,
+				BackendConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES,
+				!IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getBackendConfig_Api(), this.getApi(), null, "api", null, 0, 1, BackendConfig.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE,
+				IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(projectEClass, Project.class, "Project", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getProject_GroupId(), ecorePackage.getEString(), "groupId", null, 1, 1, Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getProject_JavaVersion(), ecorePackage.getEInt(), "javaVersion", "17", 1, 1, Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getProject_SpringBootVersion(), ecorePackage.getEString(), "springBootVersion", "3.5.6", 1, 1, Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getProject_Name(), ecorePackage.getEString(), "name", null, 1, 1, Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getProject_Language(), this.getLanguage(), "language", null, 1, 1, Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getProject_Framework(), this.getFramework(), "framework", null, 1, 1, Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_GroupId(), ecorePackage.getEString(), "groupId", null, 1, 1, Project.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_JavaVersion(), ecorePackage.getEInt(), "javaVersion", "17", 1, 1, Project.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_SpringBootVersion(), ecorePackage.getEString(), "springBootVersion", "3.5.6", 1, 1,
+				Project.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE,
+				!IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_Name(), ecorePackage.getEString(), "name", null, 1, 1, Project.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_Version(), ecorePackage.getEString(), "version", "1.0.0", 0, 1, Project.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_Language(), this.getLanguage(), "language", null, 1, 1, Project.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getProject_Framework(), this.getFramework(), "framework", null, 1, 1, Project.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
-		initEClass(databaseEClass, Database.class, "Database", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getDatabase_Type(), this.getDatabaseType(), "type", null, 1, 1, Database.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getDatabase_Host(), ecorePackage.getEString(), "host", null, 1, 1, Database.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getDatabase_Port(), ecorePackage.getEInt(), "port", null, 1, 1, Database.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getDatabase_Name(), ecorePackage.getEString(), "name", null, 1, 1, Database.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getDatabase_Tables(), this.getTable(), null, "tables", null, 1, -1, Database.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEClass(databaseEClass, Database.class, "Database", !IS_ABSTRACT, !IS_INTERFACE,
+				IS_GENERATED_INSTANCE_CLASS);
+		initEAttribute(getDatabase_Type(), this.getDatabaseType(), "type", null, 1, 1, Database.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getDatabase_Host(), ecorePackage.getEString(), "host", null, 1, 1, Database.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getDatabase_Port(), ecorePackage.getEInt(), "port", null, 1, 1, Database.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getDatabase_Name(), ecorePackage.getEString(), "name", null, 1, 1, Database.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getDatabase_Tables(), this.getTable(), null, "tables", null, 1, -1, Database.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE,
+				IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(tableEClass, Table.class, "Table", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getTable_Name(), ecorePackage.getEString(), "name", null, 1, 1, Table.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getTable_Columns(), this.getColumn(), null, "columns", null, 1, -1, Table.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getTable_Relations(), this.getRelation(), null, "relations", null, 0, -1, Table.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getTable_Name(), ecorePackage.getEString(), "name", null, 1, 1, Table.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getTable_Columns(), this.getColumn(), null, "columns", null, 1, -1, Table.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED,
+				IS_ORDERED);
+		initEReference(getTable_Relations(), this.getRelation(), null, "relations", null, 0, -1, Table.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE,
+				IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(columnEClass, Column.class, "Column", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getColumn_Name(), ecorePackage.getEString(), "name", null, 1, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getColumn_Type(), this.getDataType(), "type", null, 1, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getColumn_Primary(), ecorePackage.getEBoolean(), "primary", "false", 1, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getColumn_Unique(), ecorePackage.getEBoolean(), "unique", "false", 1, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getColumn_Nullable(), ecorePackage.getEBoolean(), "nullable", "true", 1, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getColumn_Length(), ecorePackage.getEInt(), "length", "0", 0, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getColumn_Relation(), this.getRelation(), null, "relation", null, 0, 1, Column.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getColumn_Name(), ecorePackage.getEString(), "name", null, 1, 1, Column.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getColumn_Type(), this.getDataType(), "type", null, 1, 1, Column.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getColumn_Primary(), ecorePackage.getEBoolean(), "primary", "false", 1, 1, Column.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getColumn_Unique(), ecorePackage.getEBoolean(), "unique", "false", 1, 1, Column.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getColumn_Nullable(), ecorePackage.getEBoolean(), "nullable", "true", 1, 1, Column.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getColumn_Length(), ecorePackage.getEInt(), "length", "0", 0, 1, Column.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getColumn_Relation(), this.getRelation(), null, "relation", null, 0, 1, Column.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE,
+				IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
-		initEClass(relationEClass, Relation.class, "Relation", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getRelation_TargetTable(), ecorePackage.getEString(), "targetTable", null, 1, 1, Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getRelation_TargetColumn(), ecorePackage.getEString(), "targetColumn", null, 0, 1, Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getRelation_OnDelete(), this.getCascadeType(), "onDelete", "RESTRICT", 0, 1, Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getRelation_Type(), this.getRelationType(), "type", "MANY_TO_ONE", 1, 1, Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEClass(relationEClass, Relation.class, "Relation", !IS_ABSTRACT, !IS_INTERFACE,
+				IS_GENERATED_INSTANCE_CLASS);
+		initEAttribute(getRelation_TargetTable(), ecorePackage.getEString(), "targetTable", null, 1, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_TargetColumn(), ecorePackage.getEString(), "targetColumn", null, 0, 1,
+				Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE,
+				!IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_OnDelete(), this.getCascadeType(), "onDelete", "RESTRICT", 0, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_Type(), this.getRelationType(), "type", "MANY_TO_ONE", 1, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_Owner(), ecorePackage.getEBoolean(), "owner", "true", 1, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_Fetch(), this.getFetchType(), "fetch", "LAZY", 0, 1, Relation.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_Cascade(), this.getJpaCascadeType(), "cascade", "ALL", 0, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_Optional(), ecorePackage.getEBoolean(), "optional", "true", 1, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_JoinTableName(), ecorePackage.getEString(), "joinTableName", null, 0, 1,
+				Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE,
+				!IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_JoinColumnName(), ecorePackage.getEString(), "joinColumnName", null, 0, 1,
+				Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE,
+				!IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_InverseJoinColumnName(), ecorePackage.getEString(), "inverseJoinColumnName", null, 0,
+				1, Relation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE,
+				!IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRelation_MappedBy(), ecorePackage.getEString(), "mappedBy", null, 0, 1, Relation.class,
+				!IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(apiEClass, Api.class, "Api", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getApi_BasePath(), ecorePackage.getEString(), "basePath", "/api", 1, 1, Api.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getApi_Routes(), this.getRoute(), null, "routes", null, 1, -1, Api.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getApi_BasePath(), ecorePackage.getEString(), "basePath", "/api", 1, 1, Api.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getApi_Routes(), this.getRoute(), null, "routes", null, 1, -1, Api.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED,
+				IS_ORDERED);
 
 		initEClass(routeEClass, Route.class, "Route", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getRoute_Entity(), ecorePackage.getEString(), "entity", null, 1, 1, Route.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getRoute_Methods(), this.getHttpMethod(), "methods", null, 1, -1, Route.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRoute_Entity(), ecorePackage.getEString(), "entity", null, 1, 1, Route.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRoute_Methods(), this.getHttpMethod(), "methods", null, 1, -1, Route.class, !IS_TRANSIENT,
+				!IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		// Initialize enums and add enum literals
 		initEEnum(languageEEnum, Language.class, "Language");
@@ -874,8 +1174,21 @@ public class ModelDrivenEngineeringPackageImpl extends EPackageImpl implements M
 		addEEnumLiteral(httpMethodEEnum, HttpMethod.DELETE);
 		addEEnumLiteral(httpMethodEEnum, HttpMethod.LIST);
 
+		initEEnum(fetchTypeEEnum, FetchType.class, "FetchType");
+		addEEnumLiteral(fetchTypeEEnum, FetchType.LAZY);
+		addEEnumLiteral(fetchTypeEEnum, FetchType.EAGER);
+
+		initEEnum(jpaCascadeTypeEEnum, JpaCascadeType.class, "JpaCascadeType");
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.ALL);
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.PERSIST);
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.MERGE);
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.REMOVE);
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.REFRESH);
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.DETACH);
+		addEEnumLiteral(jpaCascadeTypeEEnum, JpaCascadeType.NONE);
+
 		// Create resource
 		createResource(eNS_URI);
 	}
 
-} //ModelDrivenEngineeringPackageImpl
+} // ModelDrivenEngineeringPackageImpl

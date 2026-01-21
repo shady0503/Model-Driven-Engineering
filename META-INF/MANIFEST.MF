@@ -16,7 +16,10 @@ Export-Package: ModelDrivenEngineering,
  com.mde.ModelDrivenEngineering.util,
  com.mde.generator.Context,
  com.mde.generator.Context.impl,
- com.mde.generator.Context.util
+ com.mde.generator.Context.util,
+ Context,
+ Context.impl,
+ Context.util
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.emf.ecore;visibility:=reexport
 Bundle-ActivationPolicy: lazy

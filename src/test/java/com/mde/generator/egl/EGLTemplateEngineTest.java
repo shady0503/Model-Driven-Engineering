@@ -10,10 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.mde.generator.Context.ContextFactory;
-import com.mde.generator.Context.ProjectContext;
-import com.mde.generator.Context.EntityContext;
-import com.mde.generator.Context.FieldContext;
+import Context.ContextFactory;
+import Context.ProjectContext;
+import Context.EntityContext;
+import Context.FieldContext;
 import com.mde.generator.egl.EGLTemplateEngine;
 
 /**

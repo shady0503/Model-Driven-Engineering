@@ -1,0 +1,75 @@
+BackendConfig:
+  project:
+    Project:
+      name: BlogAPI
+      groupId: com.example.blog
+      javaVersion: 17
+      springBootVersion: 3.2.0
+      language: JAVA
+      framework: SPRING_BOOT
+  database:
+    Database:
+      name: blog_db
+      type: POSTGRESQL
+      host: localhost
+      port: 5432
+      tables:
+        - Table:
+            name: users
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column:
+                  {
+                    name: username,
+                    type: STRING,
+                    unique: true,
+                    nullable: false,
+                  }
+              - Column:
+                  { name: email, type: STRING, unique: true, nullable: false }
+        - Table:
+            name: posts
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: title, type: STRING, nullable: false }
+              - Column: { name: content, type: TEXT, nullable: false }
+              - Column: { name: published, type: BOOLEAN, nullable: false }
+              - Column:
+                  name: author_id
+                  type: LONG
+                  nullable: false
+                  relation:
+                    targetTable: users
+                    type: MANY_TO_ONE
+                    onDelete: CASCADE
+        - Table:
+            name: comments
+            columns:
+              - Column: { name: id, type: LONG, primary: true }
+              - Column: { name: content, type: TEXT, nullable: false }
+              - Column:
+                  name: post_id
+                  type: LONG
+                  nullable: false
+                  relation:
+                    targetTable: posts
+                    type: MANY_TO_ONE
+                    onDelete: CASCADE
+              - Column:
+                  name: author_id
+                  type: LONG
+                  nullable: false
+                  relation:
+                    targetTable: users
+                    type: MANY_TO_ONE
+                    onDelete: SET_NULL
+  api:
+    Api:
+      basePath: /api/v1
+      routes:
+        - Route:
+            { entity: users, methods: [CREATE, READ, UPDATE, DELETE, LIST] }
+        - Route:
+            { entity: posts, methods: [CREATE, READ, UPDATE, DELETE, LIST] }
+        - Route:
+            { entity: comments, methods: [CREATE, READ, UPDATE, DELETE, LIST] }

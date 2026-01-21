@@ -13,12 +13,16 @@ import org.eclipse.emf.ecore.EObject;
  * The following features are supported:
  * </p>
  * <ul>
- *   <li>{@link ModelDrivenEngineering.Project#getGroupId <em>Group Id</em>}</li>
- *   <li>{@link ModelDrivenEngineering.Project#getJavaVersion <em>Java Version</em>}</li>
- *   <li>{@link ModelDrivenEngineering.Project#getSpringBootVersion <em>Spring Boot Version</em>}</li>
- *   <li>{@link ModelDrivenEngineering.Project#getName <em>Name</em>}</li>
- *   <li>{@link ModelDrivenEngineering.Project#getLanguage <em>Language</em>}</li>
- *   <li>{@link ModelDrivenEngineering.Project#getFramework <em>Framework</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getGroupId <em>Group Id</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getJavaVersion <em>Java
+ * Version</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getSpringBootVersion <em>Spring
+ * Boot Version</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getName <em>Name</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getVersion <em>Version</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getLanguage <em>Language</em>}</li>
+ * <li>{@link ModelDrivenEngineering.Project#getFramework
+ * <em>Framework</em>}</li>
  * </ul>
  *
  * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#getProject()
@@ -30,6 +34,7 @@ public interface Project extends EObject {
 	 * Returns the value of the '<em><b>Group Id</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @return the value of the '<em>Group Id</em>' attribute.
 	 * @see #setGroupId(String)
 	 * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#getProject_GroupId()
@@ -39,9 +44,11 @@ public interface Project extends EObject {
 	String getGroupId();
 
 	/**
-	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getGroupId <em>Group Id</em>}' attribute.
+	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getGroupId
+	 * <em>Group Id</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @param value the new value of the '<em>Group Id</em>' attribute.
 	 * @see #getGroupId()
 	 * @generated
@@ -53,6 +60,7 @@ public interface Project extends EObject {
 	 * The default value is <code>"17"</code>.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @return the value of the '<em>Java Version</em>' attribute.
 	 * @see #setJavaVersion(int)
 	 * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#getProject_JavaVersion()
@@ -62,9 +70,11 @@ public interface Project extends EObject {
 	int getJavaVersion();
 
 	/**
-	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getJavaVersion <em>Java Version</em>}' attribute.
+	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getJavaVersion
+	 * <em>Java Version</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @param value the new value of the '<em>Java Version</em>' attribute.
 	 * @see #getJavaVersion()
 	 * @generated
@@ -76,6 +86,7 @@ public interface Project extends EObject {
 	 * The default value is <code>"3.5.6"</code>.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @return the value of the '<em>Spring Boot Version</em>' attribute.
 	 * @see #setSpringBootVersion(String)
 	 * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#getProject_SpringBootVersion()
@@ -85,9 +96,12 @@ public interface Project extends EObject {
 	String getSpringBootVersion();
 
 	/**
-	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getSpringBootVersion <em>Spring Boot Version</em>}' attribute.
+	 * Sets the value of the
+	 * '{@link ModelDrivenEngineering.Project#getSpringBootVersion <em>Spring Boot
+	 * Version</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @param value the new value of the '<em>Spring Boot Version</em>' attribute.
 	 * @see #getSpringBootVersion()
 	 * @generated
@@ -98,6 +112,7 @@ public interface Project extends EObject {
 	 * Returns the value of the '<em><b>Name</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @return the value of the '<em>Name</em>' attribute.
 	 * @see #setName(String)
 	 * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#getProject_Name()
@@ -107,9 +122,11 @@ public interface Project extends EObject {
 	String getName();
 
 	/**
-	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getName <em>Name</em>}' attribute.
+	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getName
+	 * <em>Name</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @param value the new value of the '<em>Name</em>' attribute.
 	 * @see #getName()
 	 * @generated
@@ -117,10 +134,38 @@ public interface Project extends EObject {
 	void setName(String value);
 
 	/**
-	 * Returns the value of the '<em><b>Language</b></em>' attribute.
-	 * The literals are from the enumeration {@link ModelDrivenEngineering.Language}.
+	 * Returns the value of the '<em><b>Version</b></em>' attribute.
+	 * The default value is <code>"1.0.0"</code>.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
+	 * @return the value of the '<em>Version</em>' attribute.
+	 * @see #setVersion(String)
+	 * @see ModelDrivenEngineering.ModelDrivenEngineeringPackage#getProject_Version()
+	 * @model default="1.0.0"
+	 * @generated
+	 */
+	String getVersion();
+
+	/**
+	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getVersion
+	 * <em>Version</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
+	 * @param value the new value of the '<em>Version</em>' attribute.
+	 * @see #getVersion()
+	 * @generated
+	 */
+	void setVersion(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Language</b></em>' attribute.
+	 * The literals are from the enumeration
+	 * {@link ModelDrivenEngineering.Language}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * 
 	 * @return the value of the '<em>Language</em>' attribute.
 	 * @see ModelDrivenEngineering.Language
 	 * @see #setLanguage(Language)
@@ -131,9 +176,11 @@ public interface Project extends EObject {
 	Language getLanguage();
 
 	/**
-	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getLanguage <em>Language</em>}' attribute.
+	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getLanguage
+	 * <em>Language</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @param value the new value of the '<em>Language</em>' attribute.
 	 * @see ModelDrivenEngineering.Language
 	 * @see #getLanguage()
@@ -143,9 +190,11 @@ public interface Project extends EObject {
 
 	/**
 	 * Returns the value of the '<em><b>Framework</b></em>' attribute.
-	 * The literals are from the enumeration {@link ModelDrivenEngineering.Framework}.
+	 * The literals are from the enumeration
+	 * {@link ModelDrivenEngineering.Framework}.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @return the value of the '<em>Framework</em>' attribute.
 	 * @see ModelDrivenEngineering.Framework
 	 * @see #setFramework(Framework)
@@ -156,9 +205,11 @@ public interface Project extends EObject {
 	Framework getFramework();
 
 	/**
-	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getFramework <em>Framework</em>}' attribute.
+	 * Sets the value of the '{@link ModelDrivenEngineering.Project#getFramework
+	 * <em>Framework</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
+	 * 
 	 * @param value the new value of the '<em>Framework</em>' attribute.
 	 * @see ModelDrivenEngineering.Framework
 	 * @see #getFramework()

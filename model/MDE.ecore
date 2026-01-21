@@ -17,6 +17,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="springBootVersion" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="3.5.6"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="1.0.0"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="language" lowerBound="1"
         eType="#//Language"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="framework" lowerBound="1"
@@ -85,6 +86,31 @@
         defaultValueLiteral="RESTRICT"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="#//RelationType"
         defaultValueLiteral="MANY_TO_ONE"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="owner" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fetch" eType="#//FetchType"
+        defaultValueLiteral="LAZY"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="cascade" eType="#//JpaCascadeType"
+        defaultValueLiteral="ALL"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optional" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="joinTableName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="joinColumnName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="inverseJoinColumnName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mappedBy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="FetchType">
+    <eLiterals name="LAZY" literal="LAZY"/>
+    <eLiterals name="EAGER" value="1" literal="EAGER"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="JpaCascadeType">
+    <eLiterals name="ALL" literal="ALL"/>
+    <eLiterals name="PERSIST" value="1" literal="PERSIST"/>
+    <eLiterals name="MERGE" value="2" literal="MERGE"/>
+    <eLiterals name="REMOVE" value="3" literal="REMOVE"/>
+    <eLiterals name="REFRESH" value="4" literal="REFRESH"/>
+    <eLiterals name="DETACH" value="5" literal="DETACH"/>
+    <eLiterals name="NONE" value="6" literal="NONE"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="CascadeType">
     <eLiterals name="cascade" literal="CASCADE"/>

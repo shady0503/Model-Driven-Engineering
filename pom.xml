@@ -113,7 +113,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>com.mde.cli.MdeGenCli</mainClass>
+					<mainClass>com.mde.MdeWebApplication</mainClass>
 					<executable>true</executable>
 					<finalName>mde-gen</finalName>
 				</configuration>
