@@ -1,0 +1,178 @@
+?nsuri: http://www.Forge.com/model/v1
+BackendConfig:
+  project:
+    name: KitchenSinkSystem
+    groupId: com.codeforge.examples.kitchensink
+    javaVersion: 17
+    springBootVersion: 3.5.6
+  database:
+    type: POSTGRESQL
+    name: kitchen_db
+    host: localhost
+    port: 5432
+    tables:
+      # -----------------------------------------------------------------------
+      # 1. Data Type Test
+      # -----------------------------------------------------------------------
+      - Table:
+          name: DataTypeTest
+          columns:
+            - Column:
+                name: id
+                type: LONG
+                primary: true
+            - Column:
+                name: str_val
+                type: STRING
+                nullable: false
+                length: 255
+            - Column:
+                name: int_val
+                type: INTEGER
+                nullable: true
+            - Column:
+                name: bool_val
+                type: BOOLEAN
+                defaultValueLiteral: "true"
+            - Column:
+                name: date_val
+                type: DATE
+            - Column:
+                name: time_val
+                type: DATETIME
+            - Column:
+                name: text_val
+                type: TEXT
+            - Column:
+                name: uuid_val
+                type: UUID
+                unique: true
+            - Column:
+                name: decimal_val
+                type: DECIMAL
+
+      # -----------------------------------------------------------------------
+      # 2. OneToOne Relationship (User <-> Profile)
+      # -----------------------------------------------------------------------
+      - Table:
+          name: User
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column:
+                { name: username, type: STRING, unique: true, nullable: false }
+          relations:
+            - Relation:
+                name: profile
+                targetTable: Profile
+                type: ONE_TO_ONE
+                owner: true
+                cascade: ALL
+                fetch: LAZY
+                joinColumnName: profile_id
+
+      - Table:
+          name: Profile
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column: { name: bio, type: TEXT }
+          relations:
+            - Relation:
+                name: user
+                targetTable: User
+                type: ONE_TO_ONE
+                mappedBy: profile
+
+      # -----------------------------------------------------------------------
+      # 3. OneToMany / ManyToOne Relationship (Department <-> Employee)
+      # -----------------------------------------------------------------------
+      - Table:
+          name: Department
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column: { name: name, type: STRING }
+          relations:
+            - Relation:
+                name: employees
+                targetTable: Employee
+                type: ONE_TO_MANY
+                mappedBy: department
+                cascade: ALL
+                owner: false
+
+      - Table:
+          name: Employee
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column: { name: name, type: STRING }
+          relations:
+            - Relation:
+                name: department
+                targetTable: Department
+                type: MANY_TO_ONE
+                owner: true
+                joinColumnName: dept_id
+
+      # -----------------------------------------------------------------------
+      # 4. ManyToMany Relationship (Student <-> Course)
+      # -----------------------------------------------------------------------
+      - Table:
+          name: Student
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column: { name: name, type: STRING }
+          relations:
+            - Relation:
+                name: courses
+                targetTable: Course
+                type: MANY_TO_MANY
+                owner: true
+                joinTableName: student_courses
+                joinColumnName: student_id
+                inverseJoinColumnName: course_id
+
+      - Table:
+          name: Course
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column: { name: title, type: STRING }
+          relations:
+            - Relation:
+                name: students
+                targetTable: Student
+                type: MANY_TO_MANY
+                mappedBy: courses
+
+      # -----------------------------------------------------------------------
+      # 5. Self-Referencing Relationship (Category Hierarchy)
+      # -----------------------------------------------------------------------
+      - Table:
+          name: Category
+          columns:
+            - Column: { name: id, type: LONG, primary: true }
+            - Column: { name: name, type: STRING }
+          relations:
+            - Relation:
+                name: parent
+                targetTable: Category
+                type: MANY_TO_ONE
+                owner: true
+                joinColumnName: parent_id
+            - Relation:
+                name: children
+                targetTable: Category
+                type: ONE_TO_MANY
+                mappedBy: parent
+                owner: false
+
+  api:
+    basePath: /api/v1
+    routes:
+      - Route:
+          entity: User
+          methods: [CREATE, READ, UPDATE, DELETE, LIST]
+      - Route:
+          entity: DataTypeTest
+          methods: [CREATE, READ]
+      - Route:
+          entity: Department
+          methods: [READ, LIST]

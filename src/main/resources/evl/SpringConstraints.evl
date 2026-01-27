@@ -1,0 +1,43 @@
+context Forge!BackendConfig {
+    constraint HasProject {
+        check: self.project.isDefined()
+        message: "Backend configuration must define a project."
+    }
+    constraint HasDatabase {
+        check: self.database.isDefined()
+        message: "Backend configuration must define a database."
+    }
+}
+
+context Forge!Table {
+    constraint HasColumns {
+        check: self.columns.size() > 0
+        message: "Table '" + self.name + "' must have at least one column."
+    }
+}
+
+context Forge!Relation {
+    constraint ManyToOneShouldBeOwner {
+        guard: self.type.toString() = "MANY_TO_ONE"
+        check: self.owner = true
+        message: "MANY_TO_ONE relation to '" + self.targetTable + "' in table '" + self.eContainer().name + "' should be the owning side (owner: true)."
+    }
+
+    constraint OneToManyShouldNotBeOwner {
+        guard: self.type.toString() = "ONE_TO_MANY"
+        check: self.owner = false
+        message: "ONE_TO_MANY relation to '" + self.targetTable + "' in table '" + self.eContainer().name + "' cannot be the owning side (owner: false)."
+    }
+
+    constraint OneToOneRequiresExplicitOwner {
+        guard: self.type.toString() = "ONE_TO_ONE"
+        check: self.owner.isDefined()
+        message: "ONE_TO_ONE relation to '" + self.targetTable + "' in table '" + self.eContainer().name + "' must explicitly define ownership."
+    }
+
+    constraint ManyToManyRequiresJoinTableIfOwner {
+        guard: self.type.toString() = "MANY_TO_MANY" and self.owner = true
+        check: self.joinTableName.isDefined() and self.joinTableName <> ""
+        message: "Owning MANY_TO_MANY relation to '" + self.targetTable + "' must define 'joinTableName'."
+    }
+}

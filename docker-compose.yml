@@ -1,7 +1,0 @@
-services:
-  mde-backend:
-    build: .
-    ports:
-      - "8090:8080"
-    container_name: mde_backend
-    restart: unless-stopped

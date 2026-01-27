@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/Forge/src" modelPluginID="Forge" modelName="Forge" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true">
+  <foreignModel>Forge.ecore</foreignModel>
+  <genPackages prefix="Forge" disposableProviderFactory="true" ecorePackage="Forge.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//Language">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//Language/Java"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//Framework">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//Framework/SpringBoot"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//DatabaseType">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DatabaseType/PostgreSQL"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//DataType">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/String"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/int"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/Long"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/Boolean"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/Date"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/Text"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/UUID"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/Decimal"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//DataType/DateTime"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//RelationType">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//RelationType/ONE_TO_MANY"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//RelationType/MANY_TO_ONE"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//RelationType/ONE_TO_ONE"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//RelationType/MANY_TO_MANY"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//FetchType">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//FetchType/LAZY"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//FetchType/EAGER"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//JpaCascadeType">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/ALL"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/PERSIST"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/MERGE"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/REMOVE"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/REFRESH"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/DETACH"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//JpaCascadeType/NONE"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//CascadeType">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//CascadeType/cascade"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//CascadeType/setNull"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//CascadeType/restrict"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="Forge.ecore#//HttpMethod">
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//HttpMethod/create"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//HttpMethod/read"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//HttpMethod/update"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//HttpMethod/delete"/>
+      <genEnumLiterals ecoreEnumLiteral="Forge.ecore#//HttpMethod/list"/>
+    </genEnums>
+    <genClasses ecoreClass="Forge.ecore#//BackendConfig">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//BackendConfig/project"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//BackendConfig/database"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//BackendConfig/api"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Project">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/groupId"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/javaVersion"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/springBootVersion"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/version"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/language"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Project/framework"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Database">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Database/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Database/host"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Database/port"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Database/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//Database/tables"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Table">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Table/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//Table/columns"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//Table/relations"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Column">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Column/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Column/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Column/primary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Column/unique"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Column/nullable"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Column/length"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//Column/relation"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Relation">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/targetTable"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/targetColumn"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/onDelete"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/owner"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/fetch"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/cascade"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/optional"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/joinTableName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/joinColumnName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/inverseJoinColumnName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Relation/mappedBy"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Api">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Api/basePath"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Forge.ecore#//Api/routes"/>
+    </genClasses>
+    <genClasses ecoreClass="Forge.ecore#//Route">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Route/entity"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Forge.ecore#//Route/methods"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

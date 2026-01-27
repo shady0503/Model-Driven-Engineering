@@ -1,0 +1,51 @@
+/**
+ * CodeForge Helpers (EOL)
+ * Shared logic for pluralization, naming, and JPA formatting.
+ */
+
+operation getJavaType(emfType : String) : String {
+    if (not emfType.isDefined()) return "String";
+    var type = emfType.toUpperCase();
+    if (type == "STRING") return "String";
+    if (type == "INTEGER") return "Integer";
+    if (type == "LONG") return "Long";
+    if (type == "BOOLEAN") return "Boolean";
+    if (type == "DECIMAL") return "BigDecimal";
+    if (type == "DATE") return "LocalDate";
+    if (type == "DATETIME") return "LocalDateTime";
+    if (type == "UUID") return "UUID";
+    return "String";
+}
+
+operation String toEntityName() : String {
+    var parts = self.split('_');
+    var result = "";
+    for (part in parts) {
+        if (part.length() > 0) {
+            result = result + part.firstToUpperCase();
+        }
+    }
+    return result.length() == 0 ? self : result;
+}
+
+operation String toCamelCase() : String {
+    if (not self.isDefined()) return "";
+    var entityName = self.toEntityName();
+    return entityName.substring(0, 1).toLowerCase() + entityName.substring(1);
+}
+
+operation String firstToUpperCase() : String {
+    if (self.length() == 0) return self;
+    return self.substring(0, 1).toUpperCase() + self.substring(1, self.length());
+}
+
+operation String firstToLowerCase() : String {
+    if (self.length() == 0) return self;
+    return self.substring(0, 1).toLowerCase() + self.substring(1, self.length());
+}
+
+operation String plural() : String {
+    if (self.endsWith("y")) return self.substring(0, self.length() - 1) + "ies";
+    if (self.endsWith("s")) return self + "es";
+    return self + "s";
+}

@@ -1,5 +1,12 @@
 [* This template generates docker-compose.yml for the application and database *]
-[% var project = ProjectContext.all.first(); %]
+[% import "../ForgeHelpers.eol"; %]
+[% 
+    var project = Project.all.first(); 
+    var config = project.eContainer();
+    var db = config.database;
+    var artifactId = project.name.toLowerCase();
+    var dbType = db.type.toString();
+%]
 version: '3.8'
 
 services:
@@ -7,78 +14,82 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: [%= project.artifactId %]-app
+    container_name: [%= artifactId %]-app
     ports:
       - "8080:8080"
     environment:
-      [% if (project.databaseType.toLowerCase() = "postgresql") { %]
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/[%= project.databaseName %]
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/[%= project.databaseName %]
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      [% if (dbType == "POSTGRESQL") { %]
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: [%= db.name %]
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      [% } else if (dbType == "MYSQL") { %]
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: [%= db.name %]
+      DB_USER: root
+      DB_PASSWORD: root
       [% } %]
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JPA_DDL_AUTO: update
     depends_on:
-      [% if (project.databaseType.toLowerCase() = "postgresql") { %]
+      [% if (dbType == "POSTGRESQL") { %]
       postgres:
         condition: service_healthy
-      [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
+      [% } else if (dbType == "MYSQL") { %]
       mysql:
         condition: service_healthy
       [% } %]
     networks:
-      - [%= project.artifactId %]-network
+      - [%= artifactId %]-network
     restart: unless-stopped
 
-  [% if (project.databaseType.toLowerCase() = "postgresql") { %]
+  [% if (dbType == "POSTGRESQL") { %]
   postgres:
     image: postgres:15-alpine
-    container_name: [%= project.artifactId %]-db
+    container_name: [%= artifactId %]-db
     environment:
-      POSTGRES_DB: [%= project.databaseName %]
+      POSTGRES_DB: [%= db.name %]
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - [%= project.artifactId %]_postgres_data:/var/lib/postgresql/data
+      - [%= artifactId %]_postgres_data:/var/lib/postgresql/data
     networks:
-      - [%= project.artifactId %]-network
+      - [%= artifactId %]-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-volumes:
-  [%= project.artifactId %]_postgres_data:
-
-  [% } else if (project.databaseType.toLowerCase() = "mysql") { %]
+  [% } else if (dbType == "MYSQL") { %]
   mysql:
     image: mysql:8.0
-    container_name: [%= project.artifactId %]-db
+    container_name: [%= artifactId %]-db
     environment:
-      MYSQL_DATABASE: [%= project.databaseName %]
+      MYSQL_DATABASE: [%= db.name %]
       MYSQL_ROOT_PASSWORD: root
     ports:
       - "3306:3306"
     volumes:
-      - [%= project.artifactId %]_mysql_data:/var/lib/mysql
+      - [%= artifactId %]_mysql_data:/var/lib/mysql
     networks:
-      - [%= project.artifactId %]-network
+      - [%= artifactId %]-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+  [% } %]
+
+networks:
+  [%= artifactId %]-network:
+    driver: bridge
 
 volumes:
-  [%= project.artifactId %]_mysql_data:
-
+  [% if (dbType == "POSTGRESQL") { %]
+  [%= artifactId %]_postgres_data:
+  [% } else if (dbType == "MYSQL") { %]
+  [%= artifactId %]_mysql_data:
   [% } %]
-networks:
-  [%= project.artifactId %]-network:
-    driver: bridge

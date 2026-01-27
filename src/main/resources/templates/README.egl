@@ -1,12 +1,17 @@
-[% var project = ProjectContext.all.first(); %]
-# [%= project.artifactId %]
+[% import "ForgeHelpers.eol"; %]
+[% 
+  var project = Project.all.first(); 
+  var config = project.eContainer();
+  var db = config.database;
+%]
+# [%= project.name %]
 
-REST API generated with MDE Backend Generator.
+REST API generated with CodeForge Backend Generator.
 
 ## Stack
 
 - Java [%= project.javaVersion %] + Spring Boot [%= project.springBootVersion %]
-- [%= project.databaseType.toUpperCase() %] database
+- [%= db.type.toString() %] database
 - Docker Compose ready
 
 ## Quick Start
@@ -19,28 +24,24 @@ API available at: `http://localhost:8080`
 
 ## Entities
 
-[% for (entity in project.entities) { %]
-**[%= entity.className %]** ([%= entity.fields.size() %] fields[% if (entity.hasRelationships) { %], [%= entity.relations.size() %] relationships[% } %])  
+[% for (table in db.tables) { %]
+- **[%= table.name %]**: [%= table.columns.size() %] columns, [%= table.relations.size() %] relations.
 [% } %]
 
 ## API Endpoints
 
 All entities support standard CRUD operations:
-- `POST /api/{entity}` - Create
-- `GET /api/{entity}` - List all
-- `GET /api/{entity}/{id}` - Get by ID
-- `PUT /api/{entity}/{id}` - Update
-- `DELETE /api/{entity}/{id}` - Delete
-
-[% for (entity in project.entities) { %]
-- `/api/[%= entity.tableName %]` - [%= entity.className %]
-[% } %]
+- `POST /api/{entity}s` - Create
+- `GET /api/{entity}s` - List all
+- `GET /api/{entity}s/{id}` - Get by ID
+- `PUT /api/{entity}s/{id}` - Update
+- `DELETE /api/{entity}s/{id}` - Delete
 
 ## Development
 
 Start database only:
 ```bash
-docker compose up -d [% if (project.databaseType.toLowerCase() = "postgresql") { %]postgres[% } else if (project.databaseType.toLowerCase() = "mysql") { %]mysql[% } %]
+docker compose up -d [% if (db.type.toString() == "POSTGRESQL") { %]postgres[% } %]
 ```
 
 Run locally:
